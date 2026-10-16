@@ -1,0 +1,35 @@
+# =====================================================================
+# FinTrack backend configuration. Secrets come from the environment
+# (see ../../.env.example) — never commit real values here.
+# =====================================================================
+server:
+  port: ${BACKEND_PORT:8080}
+  # Loopback only: the desktop app talks to the backend locally.
+  address: 127.0.0.1
+
+spring:
+  datasource:
+    url: jdbc:mysql://${DB_HOST:127.0.0.1}:${DB_PORT:3306}/${DB_NAME:fintrack}?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC&useSSL=false&allowPublicKeyRetrieval=true
+    username: ${DB_USER:fintrack}
+    password: ${DB_PASSWORD:fintrack_dev}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    # Schema is owned by database/*.sql — Hibernate only validates.
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        format_sql: true
+
+app:
+  jwt:
+    secret: ${JWT_SECRET:dev-only-secret-change-me-to-32-plus-random-chars}
+    expiration-ms: ${JWT_EXPIRATION_MS:1800000}
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
