@@ -1,0 +1,36 @@
+# ---- OS / editors ----
+.DS_Store
+Thumbs.db
+
+# ---- Secrets & local env ----
+.env
+.env.local
+*.keystore
+*.jks
+
+# ---- Backend (Java / Maven / Spring Boot) ----
+backend/target/
+backend/*.log
+backend/.mvn/wrapper/maven-wrapper.jar
+
+# ---- Frontend (Node / Vite) ----
+apps/desktop/node_modules/
+apps/desktop/dist/
+apps/desktop/.vite/
+apps/desktop/*.local
+
+# ---- Tauri / Rust ----
+apps/desktop/src-tauri/target/
+apps/desktop/src-tauri/WixTools/
+apps/desktop/src-tauri/gen/
+
+# ---- Tests / coverage ----
+coverage/
+*.lcov
+
+# ---- Tools on D: (never commit local installs) ----
+tools/
+
+# ---- Misc ----
+*.tmp
+*.log
