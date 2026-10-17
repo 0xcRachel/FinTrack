@@ -15,13 +15,19 @@ import org.springframework.stereotype.Component;
 @Component
 public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
-  private final ObjectMapper objectMapper = new ObjectMapper();
+  /** Spring Boot's ObjectMapper (has JavaTimeModule for ApiError#timestamp). */
+  private final ObjectMapper objectMapper;
+
+  public JwtAuthenticationEntryPoint(ObjectMapper objectMapper) {
+    this.objectMapper = objectMapper;
+  }
 
   @Override
   public void commence(HttpServletRequest request, HttpServletResponse response,
                        AuthenticationException authException) throws IOException {
     response.setStatus(HttpStatus.UNAUTHORIZED.value());
     response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+    response.setCharacterEncoding("UTF-8");
     ApiError error = ApiError.of(401, "Unauthorized",
         "Authentication required. Please log in again.", request.getRequestURI());
     objectMapper.writeValue(response.getWriter(), error);

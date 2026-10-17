@@ -100,4 +100,11 @@ public class GlobalExceptionHandler {
     return ResponseEntity.status(HttpStatus.BAD_REQUEST)
         .body(ApiError.of(400, "Bad Request", "Malformed request body.", req.getRequestURI()));
   }
+
+  @ExceptionHandler({org.springframework.web.bind.MissingServletRequestParameterException.class,
+      org.springframework.web.method.annotation.MethodArgumentTypeMismatchException.class})
+  public ResponseEntity<ApiError> handleBadParam(Exception ex, HttpServletRequest req) {
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+        .body(ApiError.of(400, "Bad Request", ex.getMessage(), req.getRequestURI()));
+  }
 }

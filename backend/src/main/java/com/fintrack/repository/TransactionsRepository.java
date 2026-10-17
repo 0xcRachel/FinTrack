@@ -77,4 +77,55 @@ public interface TransactionsRepository extends JpaRepository<Transactions, Long
                                          @Param("cat") Categories cat,
                                          @Param("start") LocalDate start,
                                          @Param("end") LocalDate end);
+
+  @Query("SELECT t.transactionDate, " +
+         "SUM(CASE WHEN t.transactionType = 'INCOME' THEN t.amount ELSE 0 END), " +
+         "SUM(CASE WHEN t.transactionType = 'EXPENSE' THEN t.amount ELSE 0 END) " +
+         "FROM Transactions t WHERE t.user = :user AND t.transactionDate BETWEEN :start AND :end " +
+         "GROUP BY t.transactionDate ORDER BY t.transactionDate")
+  List<Object[]> dailyCashFlow(@Param("user") Users user,
+                               @Param("start") LocalDate start,
+                               @Param("end") LocalDate end);
+
+  @Query("SELECT c.categoryId, COALESCE(SUM(t.amount), 0), c.name " +
+         "FROM Transactions t JOIN t.category c " +
+         "WHERE t.user = :user AND t.transactionType = 'EXPENSE' " +
+         "AND t.transactionDate BETWEEN :start AND :end " +
+         "GROUP BY c.categoryId, c.name ORDER BY SUM(t.amount) DESC")
+  List<Object[]> expenseByCategory(@Param("user") Users user,
+                                   @Param("start") LocalDate start,
+                                   @Param("end") LocalDate end);
+
+  @Query("SELECT t.transactionId, t.transactionDate, t.description, t.merchant, " +
+         "t.transactionType, t.amount, t.currencyCode, " +
+         "COALESCE(cat.name, ''), " +
+         "CASE WHEN t.transactionType = 'INCOME' THEN dest.name " +
+         "WHEN t.transactionType = 'EXPENSE' THEN src.name " +
+         "ELSE COALESCE(dest.name, src.name) END " +
+         "FROM Transactions t " +
+         "LEFT JOIN t.category cat " +
+         "LEFT JOIN t.sourceAccount src " +
+         "LEFT JOIN t.destinationAccount dest " +
+         "WHERE t.user = :user " +
+         "ORDER BY t.transactionDate DESC, t.transactionId DESC")
+  List<Object[]> recentTransactions(@Param("user") Users user);
+
+  @Query("SELECT YEAR(t.transactionDate), MONTH(t.transactionDate), " +
+         "SUM(CASE WHEN t.transactionType = 'INCOME' THEN t.amount ELSE 0 END), " +
+         "SUM(CASE WHEN t.transactionType = 'EXPENSE' THEN t.amount ELSE 0 END) " +
+         "FROM Transactions t WHERE t.user = :user AND t.transactionDate BETWEEN :start AND :end " +
+         "GROUP BY YEAR(t.transactionDate), MONTH(t.transactionDate) " +
+         "ORDER BY YEAR(t.transactionDate), MONTH(t.transactionDate)")
+  List<Object[]> monthlyIncomeExpense(@Param("user") Users user,
+                                      @Param("start") LocalDate start,
+                                      @Param("end") LocalDate end);
+
+  @Query("SELECT c.categoryId, COALESCE(SUM(t.amount), 0), c.name " +
+         "FROM Transactions t JOIN t.category c " +
+         "WHERE t.user = :user AND t.transactionType = 'INCOME' " +
+         "AND t.transactionDate BETWEEN :start AND :end " +
+         "GROUP BY c.categoryId, c.name ORDER BY SUM(t.amount) DESC")
+  List<Object[]> incomeByCategory(@Param("user") Users user,
+                                  @Param("start") LocalDate start,
+                                  @Param("end") LocalDate end);
 }

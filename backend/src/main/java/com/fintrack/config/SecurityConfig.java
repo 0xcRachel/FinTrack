@@ -23,11 +23,14 @@ public class SecurityConfig {
 
   private final JwtAuthenticationFilter jwtFilter;
   private final JwtAuthenticationEntryPoint entryPoint;
+  private final com.fasterxml.jackson.databind.ObjectMapper objectMapper;
 
   public SecurityConfig(JwtAuthenticationFilter jwtFilter,
-                        JwtAuthenticationEntryPoint entryPoint) {
+                        JwtAuthenticationEntryPoint entryPoint,
+                        com.fasterxml.jackson.databind.ObjectMapper objectMapper) {
     this.jwtFilter = jwtFilter;
     this.entryPoint = entryPoint;
+    this.objectMapper = objectMapper;
   }
 
   @Bean
@@ -39,11 +42,10 @@ public class SecurityConfig {
             .accessDeniedHandler((request, response, accessDeniedException) -> {
               response.setStatus(403);
               response.setContentType("application/json");
-              com.fasterxml.jackson.databind.ObjectMapper om =
-                  new com.fasterxml.jackson.databind.ObjectMapper();
+              response.setCharacterEncoding("UTF-8");
               com.fintrack.dto.ApiError err = com.fintrack.dto.ApiError.of(
                   403, "Forbidden", "You do not own this resource.", request.getRequestURI());
-              om.writeValue(response.getWriter(), err);
+              objectMapper.writeValue(response.getWriter(), err);
             }))
         .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .authorizeHttpRequests(auth -> auth

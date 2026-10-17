@@ -15,5 +15,6 @@ public interface ApplicationSettingsRepository
   @Query("SELECT s.settingValue FROM ApplicationSettings s WHERE s.user = :user AND s.settingKey = :key")
   String findValueByUserAndKey(@Param("user") Users user, @Param("key") String key);
 
+  java.util.Optional<ApplicationSettings> findByUserAndSettingKey(Users user, String settingKey);
   boolean existsByUserAndSettingKey(Users user, String settingKey);
 }

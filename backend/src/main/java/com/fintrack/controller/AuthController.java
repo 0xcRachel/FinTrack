@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 /** Register + login. Passwords are BCrypt-hashed; the access token is JWT. */
 @RestController
@@ -44,7 +45,7 @@ public class AuthController {
   @ResponseStatus(HttpStatus.CREATED)
   public AuthLoginResponse register(@Valid @RequestBody AuthRegisterRequest req) {
     if (usersRepository.existsByEmail(req.email())) {
-      throw new IllegalArgumentException("Email already registered");
+      throw new ResponseStatusException(HttpStatus.CONFLICT, "Email already registered");
     }
     Users user = usersRepository.save(new Users(req.fullName(), req.email(),
         passwordEncoder.encode(req.password())));
@@ -58,14 +59,14 @@ public class AuthController {
       authenticationManager.authenticate(
           new UsernamePasswordAuthenticationToken(req.email(), req.password()));
     } catch (BadCredentialsException ex) {
-      throw new IllegalArgumentException("Invalid email or password");
+      throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid email or password");
     }
     Users user = usersRepository.findByEmail(req.email());
     if (user == null) {
-      throw new IllegalArgumentException("Invalid email or password");
+      throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid email or password");
     }
     if (!Boolean.TRUE.equals(user.getIsActive())) {
-      throw new IllegalArgumentException("Account is inactive");
+      throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Account is inactive");
     }
     String token = jwtUtil.generateToken(user.getUserId());
     return new AuthLoginResponse(token, user.getUserId(), user.getFullName(), user.getEmail());

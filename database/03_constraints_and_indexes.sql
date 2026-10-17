@@ -1,217 +1,212 @@
 -- =====================================================================
 -- FinTrack database script 03/04 — CONSTRAINTS + INDEXES (MySQL 8)
--- Foreign keys, CHECK invariants, UNIQUE rules, performance indexes.
--- Run order: 01 -> 02 -> 03 -> 04.
--- Run with a UTF-8 client: mysql --default-character-set=utf8mb4 ...
--- NOTE: run this file ONCE per schema AS A PRIVILEGED ACCOUNT (root):
+-- Run order: 01 -> 02 -> 03 -> 04 ONCE per schema AS A PRIVILEGED ACCOUNT (root):
 -- trigger creation requires SUPER / log_bin_trust_function_creators.
--- Deletion policy: user-owned rows CASCADE; rows referenced by financial
--- history RESTRICT (archive instead of deleting); optional links SET NULL.
 -- =====================================================================
 
 USE fintrack;
 
 -- ========================================================= FOREIGN KEYS ==
-ALTER TABLE Accounts
-  ADD CONSTRAINT FK_Accounts_User FOREIGN KEY (UserId)
-  REFERENCES Users (UserId) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE accounts
+  ADD CONSTRAINT fk_accounts_user FOREIGN KEY (user_id)
+  REFERENCES users (user_id) ON DELETE CASCADE ON UPDATE CASCADE;
 
-ALTER TABLE Categories
-  ADD CONSTRAINT FK_Categories_User FOREIGN KEY (UserId)
-  REFERENCES Users (UserId) ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE categories
+  ADD CONSTRAINT fk_categories_user FOREIGN KEY (user_id)
+  REFERENCES users (user_id) ON DELETE SET NULL ON UPDATE CASCADE;
 
-ALTER TABLE Transactions
-  ADD CONSTRAINT FK_Transactions_User FOREIGN KEY (UserId)
-  REFERENCES Users (UserId) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE transactions
+  ADD CONSTRAINT fk_transactions_user FOREIGN KEY (user_id)
+  REFERENCES users (user_id) ON DELETE CASCADE ON UPDATE CASCADE;
 
-ALTER TABLE Transactions
-  ADD CONSTRAINT FK_Transactions_Category FOREIGN KEY (CategoryId)
-  REFERENCES Categories (CategoryId) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE transactions
+  ADD CONSTRAINT fk_transactions_category FOREIGN KEY (category_id)
+  REFERENCES categories (category_id) ON DELETE RESTRICT ON UPDATE CASCADE;
 
-ALTER TABLE Transactions
-  ADD CONSTRAINT FK_Transactions_Source FOREIGN KEY (SourceAccountId)
-  REFERENCES Accounts (AccountId) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE transactions
+  ADD CONSTRAINT fk_transactions_source FOREIGN KEY (source_account_id)
+  REFERENCES accounts (account_id) ON DELETE RESTRICT ON UPDATE CASCADE;
 
-ALTER TABLE Transactions
-  ADD CONSTRAINT FK_Transactions_Dest FOREIGN KEY (DestinationAccountId)
-  REFERENCES Accounts (AccountId) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE transactions
+  ADD CONSTRAINT fk_transactions_dest FOREIGN KEY (destination_account_id)
+  REFERENCES accounts (account_id) ON DELETE RESTRICT ON UPDATE CASCADE;
 
-ALTER TABLE Budgets
-  ADD CONSTRAINT FK_Budgets_User FOREIGN KEY (UserId)
-  REFERENCES Users (UserId) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE budgets
+  ADD CONSTRAINT fk_budgets_user FOREIGN KEY (user_id)
+  REFERENCES users (user_id) ON DELETE CASCADE ON UPDATE CASCADE;
 
-ALTER TABLE Budgets
-  ADD CONSTRAINT FK_Budgets_Category FOREIGN KEY (CategoryId)
-  REFERENCES Categories (CategoryId) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE budgets
+  ADD CONSTRAINT fk_budgets_category FOREIGN KEY (category_id)
+  REFERENCES categories (category_id) ON DELETE RESTRICT ON UPDATE CASCADE;
 
-ALTER TABLE SavingsGoals
-  ADD CONSTRAINT FK_Goals_User FOREIGN KEY (UserId)
-  REFERENCES Users (UserId) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE savings_goals
+  ADD CONSTRAINT fk_goals_user FOREIGN KEY (user_id)
+  REFERENCES users (user_id) ON DELETE CASCADE ON UPDATE CASCADE;
 
-ALTER TABLE SavingsGoals
-  ADD CONSTRAINT FK_Goals_LinkedAccount FOREIGN KEY (LinkedAccountId)
-  REFERENCES Accounts (AccountId) ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE savings_goals
+  ADD CONSTRAINT fk_goals_linked_account FOREIGN KEY (linked_account_id)
+  REFERENCES accounts (account_id) ON DELETE SET NULL ON UPDATE CASCADE;
 
-ALTER TABLE GoalContributions
-  ADD CONSTRAINT FK_Contrib_Goal FOREIGN KEY (GoalId)
-  REFERENCES SavingsGoals (GoalId) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE goal_contributions
+  ADD CONSTRAINT fk_contrib_goal FOREIGN KEY (goal_id)
+  REFERENCES savings_goals (goal_id) ON DELETE CASCADE ON UPDATE CASCADE;
 
-ALTER TABLE ApplicationSettings
-  ADD CONSTRAINT FK_Settings_User FOREIGN KEY (UserId)
-  REFERENCES Users (UserId) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE application_settings
+  ADD CONSTRAINT fk_settings_user FOREIGN KEY (user_id)
+  REFERENCES users (user_id) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- ============================================================== CHECKS ==
--- NOTE: MySQL (error 3823) forbids CHECK constraints on columns that are
--- also protected by FOREIGN KEY referential actions. Therefore the
--- transaction type/role invariant is enforced by TRIGGERS (see bottom of
--- this file); only non-FK columns carry CHECKs here.
-ALTER TABLE Accounts
-  ADD CONSTRAINT CK_Accounts_Type
-  CHECK (AccountType IN ('CASH','BANK','SAVINGS','CREDIT_CARD','OTHER'));
+ALTER TABLE accounts
+  ADD CONSTRAINT ck_accounts_type
+  CHECK (account_type IN ('CASH','BANK','SAVINGS','CREDIT_CARD','OTHER'));
 
-ALTER TABLE Accounts
-  ADD CONSTRAINT CK_Accounts_Opening
-  CHECK (OpeningBalance >= 0 OR AccountType = 'CREDIT_CARD');
+ALTER TABLE accounts
+  ADD CONSTRAINT ck_accounts_opening
+  CHECK (opening_balance >= 0 OR account_type = 'CREDIT_CARD');
 
-ALTER TABLE Accounts
-  ADD CONSTRAINT CK_Accounts_Currency CHECK (CHAR_LENGTH(CurrencyCode) = 3);
+ALTER TABLE accounts
+  ADD CONSTRAINT ck_accounts_currency CHECK (CHAR_LENGTH(currency_code) = 3);
 
-ALTER TABLE Categories
-  ADD CONSTRAINT CK_Categories_Type CHECK (CategoryType IN ('INCOME','EXPENSE'));
+ALTER TABLE categories
+  ADD CONSTRAINT ck_categories_type CHECK (category_type IN ('INCOME','EXPENSE'));
 
-ALTER TABLE Transactions
-  ADD CONSTRAINT CK_Transactions_Amount CHECK (Amount > 0);
+ALTER TABLE transactions
+  ADD CONSTRAINT ck_transactions_amount CHECK (amount > 0);
 
-ALTER TABLE Transactions
-  ADD CONSTRAINT CK_Transactions_Currency CHECK (CHAR_LENGTH(CurrencyCode) = 3);
+-- NOTE: the type/role invariant (INCOME/EXPENSE/TRANSFER account roles)
+-- is intentionally NOT a CHECK here: MySQL forbids CHECKs covering FK
+-- columns (error 3823). It is enforced by the BEFORE INSERT/UPDATE
+-- triggers at the bottom of this script (last line of defense).
 
-ALTER TABLE Budgets
-  ADD CONSTRAINT CK_Budgets_Period
-  CHECK (PeriodType IN ('WEEKLY','MONTHLY','QUARTERLY','YEARLY','CUSTOM'));
+ALTER TABLE transactions
+  ADD CONSTRAINT ck_transactions_currency CHECK (CHAR_LENGTH(currency_code) = 3);
 
-ALTER TABLE Budgets
-  ADD CONSTRAINT CK_Budgets_Dates CHECK (EndDate >= StartDate);
+ALTER TABLE budgets
+  ADD CONSTRAINT ck_budgets_period
+  CHECK (period_type IN ('WEEKLY','MONTHLY','QUARTERLY','YEARLY','CUSTOM'));
 
-ALTER TABLE Budgets
-  ADD CONSTRAINT CK_Budgets_Amount CHECK (Amount >= 0);
+ALTER TABLE budgets
+  ADD CONSTRAINT ck_budgets_dates CHECK (end_date >= start_date);
 
-ALTER TABLE Budgets
-  ADD CONSTRAINT CK_Budgets_Threshold
-  CHECK (WarningThresholdPercent BETWEEN 0 AND 100);
+ALTER TABLE budgets
+  ADD CONSTRAINT ck_budgets_amount CHECK (amount >= 0);
 
-ALTER TABLE Budgets
-  ADD CONSTRAINT CK_Budgets_Currency CHECK (CHAR_LENGTH(CurrencyCode) = 3);
+ALTER TABLE budgets
+  ADD CONSTRAINT ck_budgets_threshold
+  CHECK (warning_threshold_percent BETWEEN 0 AND 100);
 
-ALTER TABLE SavingsGoals
-  ADD CONSTRAINT CK_Goals_Target CHECK (TargetAmount > 0);
+ALTER TABLE budgets
+  ADD CONSTRAINT ck_budgets_currency CHECK (CHAR_LENGTH(currency_code) = 3);
 
-ALTER TABLE SavingsGoals
-  ADD CONSTRAINT CK_Goals_Status
-  CHECK (Status IN ('ACTIVE','COMPLETED','ARCHIVED'));
+ALTER TABLE savings_goals
+  ADD CONSTRAINT ck_goals_target CHECK (target_amount > 0);
 
-ALTER TABLE SavingsGoals
-  ADD CONSTRAINT CK_Goals_Currency CHECK (CHAR_LENGTH(CurrencyCode) = 3);
+ALTER TABLE savings_goals
+  ADD CONSTRAINT ck_goals_status
+  CHECK (status IN ('ACTIVE','COMPLETED','ARCHIVED'));
 
-ALTER TABLE GoalContributions
-  ADD CONSTRAINT CK_Contrib_Amount CHECK (Amount > 0);
+ALTER TABLE savings_goals
+  ADD CONSTRAINT ck_goals_currency CHECK (CHAR_LENGTH(currency_code) = 3);
 
-ALTER TABLE GoalContributions
-  ADD CONSTRAINT CK_Contrib_Type
-  CHECK (ContributionType IN ('CONTRIBUTION','WITHDRAWAL'));
+ALTER TABLE goal_contributions
+  ADD CONSTRAINT ck_contrib_amount CHECK (amount > 0);
 
-ALTER TABLE ApplicationSettings
-  ADD CONSTRAINT CK_Settings_Key CHECK (CHAR_LENGTH(SettingKey) > 0);
+ALTER TABLE goal_contributions
+  ADD CONSTRAINT ck_contrib_type
+  CHECK (contribution_type IN ('CONTRIBUTION','WITHDRAWAL'));
+
+ALTER TABLE application_settings
+  ADD CONSTRAINT ck_settings_key CHECK (CHAR_LENGTH(setting_key) > 0);
 
 -- ============================================================== UNIQUE ==
-CREATE UNIQUE INDEX UQ_Users_Email ON Users (Email);
-CREATE UNIQUE INDEX UQ_Accounts_User_Name ON Accounts (UserId, Name);
-CREATE UNIQUE INDEX UQ_Categories_User_Type_Name ON Categories (UserId, CategoryType, Name);
-CREATE UNIQUE INDEX UQ_Budgets_User_Cat_Period
-  ON Budgets (UserId, CategoryId, StartDate, EndDate);
-CREATE UNIQUE INDEX UQ_Goals_User_Name ON SavingsGoals (UserId, Name);
-CREATE UNIQUE INDEX UQ_Settings_User_Key ON ApplicationSettings (UserId, SettingKey);
+CREATE UNIQUE INDEX uq_users_email ON users (email);
+CREATE UNIQUE INDEX uq_accounts_user_name ON accounts (user_id, name);
+CREATE UNIQUE INDEX uq_categories_user_type_name ON categories (user_id, category_type, name);
+CREATE UNIQUE INDEX uq_budgets_user_cat_period
+  ON budgets (user_id, category_id, start_date, end_date);
+CREATE UNIQUE INDEX uq_goals_user_name ON savings_goals (user_id, name);
+CREATE UNIQUE INDEX uq_settings_user_key ON application_settings (user_id, setting_key);
 
 -- ============================================================== INDEX ==
-CREATE INDEX IX_Transactions_User_Date ON Transactions (UserId, TransactionDate);
-CREATE INDEX IX_Transactions_Type ON Transactions (UserId, TransactionType);
-CREATE INDEX IX_Transactions_Source ON Transactions (SourceAccountId);
-CREATE INDEX IX_Transactions_Dest ON Transactions (DestinationAccountId);
-CREATE INDEX IX_Transactions_Category ON Transactions (CategoryId);
-CREATE INDEX IX_Accounts_User ON Accounts (UserId);
-CREATE INDEX IX_Contrib_Goal_Date ON GoalContributions (GoalId, ContributionDate);
-CREATE INDEX IX_Budgets_User_Dates ON Budgets (UserId, StartDate, EndDate);
+CREATE INDEX ix_transactions_user_date ON transactions (user_id, transaction_date);
+CREATE INDEX ix_transactions_type ON transactions (user_id, transaction_type);
+CREATE INDEX ix_transactions_source ON transactions (source_account_id);
+CREATE INDEX ix_transactions_dest ON transactions (destination_account_id);
+CREATE INDEX ix_transactions_category ON transactions (category_id);
+CREATE INDEX ix_accounts_user ON accounts (user_id);
+CREATE INDEX ix_contrib_goal_date ON goal_contributions (goal_id, contribution_date);
+CREATE INDEX ix_budgets_user_dates ON budgets (user_id, start_date, end_date);
 
 -- ============================================================= TRIGGERS ==
--- Transaction type/role invariant (cannot be a CHECK: error 3823, the
--- account/category columns carry FK referential actions).
---   INCOME   : Source NULL,       Destination set,   category required
---   EXPENSE  : Source set,        Destination NULL,  category required
+-- Transaction type/role invariant (CHECK forbidden on FK columns: MySQL error 3823).
+--   INCOME   : source NULL,       destination set,   category required
+--   EXPENSE  : source set,        destination NULL,  category required
 --   TRANSFER : both set, distinct accounts, category NULL
 -- The service layer ALSO validates these rules to return clean 400s;
 -- triggers are the last line of defense for data integrity.
 DELIMITER $$
 
-DROP TRIGGER IF EXISTS TRG_Transactions_BeforeInsert $$
+DROP TRIGGER IF EXISTS trg_transactions_before_insert $$
 
-CREATE TRIGGER TRG_Transactions_BeforeInsert
-BEFORE INSERT ON Transactions FOR EACH ROW
+CREATE TRIGGER trg_transactions_before_insert
+BEFORE INSERT ON transactions FOR EACH ROW
 BEGIN
-  IF NEW.TransactionType NOT IN ('INCOME', 'EXPENSE', 'TRANSFER') THEN
+  IF NEW.transaction_type NOT IN ('INCOME', 'EXPENSE', 'TRANSFER') THEN
     SIGNAL SQLSTATE '45000'
-      SET MESSAGE_TEXT = 'TRG: TransactionType must be INCOME, EXPENSE or TRANSFER';
+      SET MESSAGE_TEXT = 'TRG: transaction_type must be INCOME, EXPENSE or TRANSFER';
   END IF;
-  IF NEW.TransactionType = 'INCOME'
-     AND (NEW.SourceAccountId IS NOT NULL
-          OR NEW.DestinationAccountId IS NULL
-          OR NEW.CategoryId IS NULL) THEN
+  IF NEW.transaction_type = 'INCOME'
+     AND (NEW.source_account_id IS NOT NULL
+          OR NEW.destination_account_id IS NULL
+          OR NEW.category_id IS NULL) THEN
     SIGNAL SQLSTATE '45000'
-      SET MESSAGE_TEXT = 'TRG: INCOME requires Source NULL, Destination set, Category set';
+      SET MESSAGE_TEXT = 'TRG: INCOME requires source NULL, destination set, category set';
   END IF;
-  IF NEW.TransactionType = 'EXPENSE'
-     AND (NEW.SourceAccountId IS NULL
-          OR NEW.DestinationAccountId IS NOT NULL
-          OR NEW.CategoryId IS NULL) THEN
+  IF NEW.transaction_type = 'EXPENSE'
+     AND (NEW.source_account_id IS NULL
+          OR NEW.destination_account_id IS NOT NULL
+          OR NEW.category_id IS NULL) THEN
     SIGNAL SQLSTATE '45000'
-      SET MESSAGE_TEXT = 'TRG: EXPENSE requires Source set, Destination NULL, Category set';
+      SET MESSAGE_TEXT = 'TRG: EXPENSE requires source set, destination NULL, category set';
   END IF;
-  IF NEW.TransactionType = 'TRANSFER'
-     AND (NEW.SourceAccountId IS NULL
-          OR NEW.DestinationAccountId IS NULL
-          OR NEW.SourceAccountId = NEW.DestinationAccountId
-          OR NEW.CategoryId IS NOT NULL) THEN
+  IF NEW.transaction_type = 'TRANSFER'
+     AND (NEW.source_account_id IS NULL
+          OR NEW.destination_account_id IS NULL
+          OR NEW.source_account_id = NEW.destination_account_id
+          OR NEW.category_id IS NOT NULL) THEN
     SIGNAL SQLSTATE '45000'
       SET MESSAGE_TEXT = 'TRG: TRANSFER requires two distinct accounts and no category';
   END IF;
 END $$
 
-DROP TRIGGER IF EXISTS TRG_Transactions_BeforeUpdate $$
+DROP TRIGGER IF EXISTS trg_transactions_before_update $$
 
-CREATE TRIGGER TRG_Transactions_BeforeUpdate
-BEFORE UPDATE ON Transactions FOR EACH ROW
+CREATE TRIGGER trg_transactions_before_update
+BEFORE UPDATE ON transactions FOR EACH ROW
 BEGIN
-  IF NEW.TransactionType NOT IN ('INCOME', 'EXPENSE', 'TRANSFER') THEN
+  IF NEW.transaction_type NOT IN ('INCOME', 'EXPENSE', 'TRANSFER') THEN
     SIGNAL SQLSTATE '45000'
-      SET MESSAGE_TEXT = 'TRG: TransactionType must be INCOME, EXPENSE or TRANSFER';
+      SET MESSAGE_TEXT = 'TRG: transaction_type must be INCOME, EXPENSE or TRANSFER';
   END IF;
-  IF NEW.TransactionType = 'INCOME'
-     AND (NEW.SourceAccountId IS NOT NULL
-          OR NEW.DestinationAccountId IS NULL
-          OR NEW.CategoryId IS NULL) THEN
+  IF NEW.transaction_type = 'INCOME'
+     AND (NEW.source_account_id IS NOT NULL
+          OR NEW.destination_account_id IS NULL
+          OR NEW.category_id IS NULL) THEN
     SIGNAL SQLSTATE '45000'
-      SET MESSAGE_TEXT = 'TRG: INCOME requires Source NULL, Destination set, Category set';
+      SET MESSAGE_TEXT = 'TRG: INCOME requires source NULL, destination set, category set';
   END IF;
-  IF NEW.TransactionType = 'EXPENSE'
-     AND (NEW.SourceAccountId IS NULL
-          OR NEW.DestinationAccountId IS NOT NULL
-          OR NEW.CategoryId IS NULL) THEN
+  IF NEW.transaction_type = 'EXPENSE'
+     AND (NEW.source_account_id IS NULL
+          OR NEW.destination_account_id IS NOT NULL
+          OR NEW.category_id IS NULL) THEN
     SIGNAL SQLSTATE '45000'
-      SET MESSAGE_TEXT = 'TRG: EXPENSE requires Source set, Destination NULL, Category set';
+      SET MESSAGE_TEXT = 'TRG: EXPENSE requires source set, destination NULL, category set';
   END IF;
-  IF NEW.TransactionType = 'TRANSFER'
-     AND (NEW.SourceAccountId IS NULL
-          OR NEW.DestinationAccountId IS NULL
-          OR NEW.SourceAccountId = NEW.DestinationAccountId
-          OR NEW.CategoryId IS NOT NULL) THEN
+  IF NEW.transaction_type = 'TRANSFER'
+     AND (NEW.source_account_id IS NULL
+          OR NEW.destination_account_id IS NULL
+          OR NEW.source_account_id = NEW.destination_account_id
+          OR NEW.category_id IS NOT NULL) THEN
     SIGNAL SQLSTATE '45000'
       SET MESSAGE_TEXT = 'TRG: TRANSFER requires two distinct accounts and no category';
   END IF;

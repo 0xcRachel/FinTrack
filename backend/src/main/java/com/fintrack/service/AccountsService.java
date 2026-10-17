@@ -7,6 +7,7 @@ import com.fintrack.dto.AccountArchiveRequest;
 import com.fintrack.dto.AccountBalanceDto;
 import com.fintrack.entity.Accounts;
 import com.fintrack.enums.AccountType;
+import com.fintrack.enums.TransactionType;
 import com.fintrack.entity.Users;
 import com.fintrack.repository.AccountsRepository;
 import com.fintrack.repository.TransactionsRepository;
@@ -40,7 +41,7 @@ public class AccountsService {
   @Transactional(readOnly = true)
   public Page<AccountDto> listAccounts(Users user, Pageable pageable) {
     return accountsRepository.findByUserAndIsArchivedFalse(user, pageable)
-        .map(a -> AccountMapper.toDto(a, computeBalance(a.getAccountId(), user)));
+        .map(a -> AccountMapper.toDto(a, computeBalance(a, user)));
   }
 
   @Transactional(readOnly = true)
@@ -96,7 +97,7 @@ public class AccountsService {
         user, org.springframework.data.domain.Pageable.unpaged());
     return accounts.stream()
         .map(a -> new AccountBalanceDto(a.getAccountId(), a.getName(), a.getCurrencyCode(),
-            computeBalance(a.getAccountId(), user)))
+            computeBalance(a, user)))
         .toList();
   }
 
@@ -106,15 +107,24 @@ public class AccountsService {
     Accounts a = accountsRepository.findById(accountId)
         .filter(ac -> ac.getUser().getUserId().equals(user.getUserId()))
         .orElseThrow(() -> new IllegalArgumentException("Account not found"));
-    BigDecimal income = transactionsRepository.sumIncome(user, null, null);
-    BigDecimal expense = transactionsRepository.sumExpense(user, null, null);
-    BigDecimal out = transactionsRepository.sumOutgoingTransfers(user, a, null, null);
-    BigDecimal aIn = transactionsRepository.sumIncomingTransfers(user, a, null, null);
+    return computeBalance(a, user);
+  }
+
+  /**
+   * Derived balance for an account already loaded: opening + income received − expenses paid
+   * ± transfers. Income/expense/transfers are account-scoped (destination resp. source).
+   */
+  @Transactional(readOnly = true)
+  public BigDecimal computeBalance(Accounts a, Users user) {
+    BigDecimal income = transactionsRepository.sumToAccount(user, a, TransactionType.INCOME);
+    BigDecimal expense = transactionsRepository.sumFromAccount(user, a, TransactionType.EXPENSE);
+    BigDecimal transferIn = transactionsRepository.sumToAccount(user, a, TransactionType.TRANSFER);
+    BigDecimal transferOut = transactionsRepository.sumFromAccount(user, a, TransactionType.TRANSFER);
     return a.getOpeningBalance()
-        .add(income == null ? BigDecimal.ZERO : income)
-        .subtract(expense == null ? BigDecimal.ZERO : expense)
-        .add(aIn == null ? BigDecimal.ZERO : aIn)
-        .subtract(out == null ? BigDecimal.ZERO : out);
+        .add(income)
+        .subtract(expense)
+        .add(transferIn)
+        .subtract(transferOut);
   }
 
   private void validateCurrency(String code) {
