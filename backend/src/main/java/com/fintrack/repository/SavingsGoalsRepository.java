@@ -11,5 +11,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface SavingsGoalsRepository extends JpaRepository<SavingsGoals, Long>, JpaSpecificationExecutor<SavingsGoals> {
   List<SavingsGoals> findByUserAndStatusOrderByCreatedAtDesc(Users user, GoalStatus status);
+  List<SavingsGoals> findByUserOrderByCreatedAtDesc(Users user);
   boolean existsByUserAndNameAndStatusNot(Users user, String name, GoalStatus status);
 }

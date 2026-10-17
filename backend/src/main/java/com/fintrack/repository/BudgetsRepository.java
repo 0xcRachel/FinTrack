@@ -14,6 +14,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface BudgetsRepository extends JpaRepository<Budgets, Long>, JpaSpecificationExecutor<Budgets> {
   List<Budgets> findByUserAndCategoryOrderByStartDateDesc(Users user, Categories category);
+  List<Budgets> findByUserOrderByStartDateDesc(Users user);
 
   @Query("SELECT b FROM Budgets b WHERE b.user = :user AND b.startDate <= :end AND b.endDate >= :start " +
          "AND b.category.id = :categoryId ORDER BY b.startDate DESC")

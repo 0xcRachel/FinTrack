@@ -69,4 +69,12 @@ public interface TransactionsRepository extends JpaRepository<Transactions, Long
          "AND t.transactionType = :type AND t.sourceAccount = :account")
   BigDecimal sumFromAccount(@Param("user") Users user, @Param("account") Accounts account,
                             @Param("type") TransactionType type);
+
+  @Query("SELECT COALESCE(SUM(t.amount), 0) FROM Transactions t WHERE t.user = :user " +
+         "AND t.transactionType = 'EXPENSE' AND t.category = :cat " +
+         "AND t.transactionDate BETWEEN :start AND :end")
+  BigDecimal sumExpenseByCategoryAndDate(@Param("user") Users user,
+                                         @Param("cat") Categories cat,
+                                         @Param("start") LocalDate start,
+                                         @Param("end") LocalDate end);
 }
