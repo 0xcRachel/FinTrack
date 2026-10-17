@@ -18,6 +18,7 @@ public interface AccountsRepository extends JpaRepository<Accounts, Long>, JpaSp
   List<Accounts> findByUserAndIsArchivedFalseOrderByNameAsc(Users user, Pageable pageable);
   Page<Accounts> findByUserAndIsArchivedFalse(Users user, Pageable pageable);
   boolean existsByUserAndNameAndIsArchivedFalse(Users user, String name);
+  boolean existsByUserAndName(Users user, String name);
 
   @Query("SELECT MAX(a.updatedAt) FROM Accounts a WHERE a.user = :user")
   Instant findLastUpdatedByUser(@Param("user") Users user);
