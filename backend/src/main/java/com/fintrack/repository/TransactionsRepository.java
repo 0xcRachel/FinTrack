@@ -1,6 +1,8 @@
 package com.fintrack.repository;
 
 import com.fintrack.entity.Transactions;
+import com.fintrack.entity.Accounts;
+import com.fintrack.entity.Categories;
 import com.fintrack.enums.TransactionType;
 import com.fintrack.entity.Users;
 import java.math.BigDecimal;
@@ -57,4 +59,14 @@ public interface TransactionsRepository extends JpaRepository<Transactions, Long
 
   Optional<Transactions> findByUserAndTransactionId(@Param("user") Users user,
                                                     @Param("transactionId") Long transactionId);
+
+  @Query("SELECT COALESCE(SUM(t.amount), 0) FROM Transactions t WHERE t.user = :user " +
+         "AND t.transactionType = :type AND t.destinationAccount = :account")
+  BigDecimal sumToAccount(@Param("user") Users user, @Param("account") Accounts account,
+                          @Param("type") TransactionType type);
+
+  @Query("SELECT COALESCE(SUM(t.amount), 0) FROM Transactions t WHERE t.user = :user " +
+         "AND t.transactionType = :type AND t.sourceAccount = :account")
+  BigDecimal sumFromAccount(@Param("user") Users user, @Param("account") Accounts account,
+                            @Param("type") TransactionType type);
 }
