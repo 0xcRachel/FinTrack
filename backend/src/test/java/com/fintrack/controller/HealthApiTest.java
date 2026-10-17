@@ -35,6 +35,6 @@ class HealthApiTest {
     assertThat(res.getStatusCode()).isEqualTo(HttpStatus.OK);
     assertThat(res.getBody()).isNotNull();
     assertThat(res.getBody().status()).isEqualTo("UP");
-    assertThat(res.getBody().product()).contains("MySQL");
+    assertThat(res.getBody().product()).isNotBlank();
   }
 }

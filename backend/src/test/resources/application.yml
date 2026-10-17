@@ -1,0 +1,11 @@
+# Test profile: never collide with a locally running dev backend.
+server:
+  port: 0
+spring:
+  main:
+    web-application-type: servlet
+
+app:
+  jwt:
+    secret: test-only-secret-key-that-is-long-enough-for-hs256-signing
+    expiration-ms: 900000
