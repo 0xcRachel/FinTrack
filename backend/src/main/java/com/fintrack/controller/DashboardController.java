@@ -32,9 +32,10 @@ public class DashboardController {
                                      @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
                                      LocalDate startDate,
                                      @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-                                     LocalDate endDate) {
+                                     LocalDate endDate,
+                                     @RequestParam(required = false) String currency) {
     return dashboardService.summary(usersRepository.getReferenceById(details.getUserId()),
-        startDate, endDate);
+        startDate, endDate, currency);
   }
 
   @GetMapping("/cash-flow")
@@ -42,9 +43,10 @@ public class DashboardController {
                               @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
                               LocalDate startDate,
                               @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-                              LocalDate endDate) {
+                              LocalDate endDate,
+                              @RequestParam(required = false) String currency) {
     return dashboardService.cashFlow(usersRepository.getReferenceById(details.getUserId()),
-        startDate, endDate);
+        startDate, endDate, currency);
   }
 
   @GetMapping("/expense-breakdown")
@@ -52,15 +54,27 @@ public class DashboardController {
                                               @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
                                               LocalDate startDate,
                                               @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-                                              LocalDate endDate) {
+                                              LocalDate endDate,
+                                              @RequestParam(required = false) String currency) {
     return dashboardService.expenseBreakdown(usersRepository.getReferenceById(details.getUserId()),
-        startDate, endDate);
+        startDate, endDate, currency);
   }
 
   @GetMapping("/recent-transactions")
   public DashboardRecentTransactionsDto recent(
       @AuthenticationPrincipal AppUserDetails details,
-      @RequestParam(defaultValue = "10") int limit) {
-    return dashboardService.recent(usersRepository.getReferenceById(details.getUserId()), limit);
+      @RequestParam(defaultValue = "10") int limit,
+      @RequestParam(required = false) String currency) {
+    return dashboardService.recent(usersRepository.getReferenceById(details.getUserId()), limit, currency);
+  }
+
+  @GetMapping("/insights")
+  public com.fintrack.dto.DashboardInsightsDto insights(
+      @AuthenticationPrincipal AppUserDetails details,
+      @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+      @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+      @RequestParam(required = false) String currency) {
+    return dashboardService.insights(usersRepository.getReferenceById(details.getUserId()),
+        startDate, endDate, currency);
   }
 }

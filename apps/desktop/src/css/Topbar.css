@@ -1,0 +1,169 @@
+/* ─── Minimalist Modern Topbar ──────────────────────────────── */
+.fw-topbar {
+  height: 58px;
+  min-height: 58px;
+  background-color: #0b0d13;
+  border-bottom: 1px solid #171a23;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  box-sizing: border-box;
+}
+
+.fw-topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.fw-topbar-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  color: #f8fafc;
+  margin: 0;
+}
+
+.fw-topbar-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  color: #34d399;
+}
+
+.fw-topbar-status.offline {
+  background: rgba(245, 158, 11, 0.08);
+  border-color: rgba(245, 158, 11, 0.2);
+  color: #fbbf24;
+}
+
+.fw-topbar-status-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background-color: #10b981;
+}
+
+.fw-topbar-status.offline .fw-topbar-status-dot {
+  background-color: #f59e0b;
+}
+
+.fw-topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Language Toggle */
+.fw-topbar-lang-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 10px;
+  background: #141722;
+  border: 1px solid #232838;
+  border-radius: 6px;
+  color: #94a3b8;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.fw-topbar-lang-toggle:hover {
+  background: #1a1e2c;
+  color: #f1f5f9;
+  border-color: #31384e;
+}
+
+/* Icon Buttons */
+.fw-topbar-icon-btn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #141722;
+  border: 1px solid #232838;
+  border-radius: 6px;
+  color: #94a3b8;
+  cursor: pointer;
+  transition: all 0.12s ease;
+  position: relative;
+}
+
+.fw-topbar-icon-btn:hover {
+  background: #1a1e2c;
+  color: #f1f5f9;
+  border-color: #31384e;
+}
+
+.fw-topbar-badge-dot {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #f87171;
+}
+
+/* User Profile Pill */
+.fw-topbar-user-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 8px 3px 4px;
+  background: #141722;
+  border: 1px solid #232838;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.fw-topbar-user-pill:hover {
+  background: #1a1e2c;
+  border-color: #31384e;
+}
+
+.fw-topbar-avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 5px;
+  background: #252b3d;
+  color: #818cf8;
+  font-size: 0.7rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fw-topbar-user-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+  text-align: left;
+}
+
+.fw-topbar-user-name {
+  font-size: 0.775rem;
+  font-weight: 600;
+  color: #f1f5f9;
+}
+
+.fw-topbar-user-role {
+  font-size: 0.65rem;
+  color: #64748b;
+}

@@ -1,0 +1,218 @@
+/* ─── Minimalist Modern Spending Flow Chart ─────────────────── */
+.fw-flow-card {
+  background: #0f121a;
+  border: 1px solid #1a1e2a;
+  border-radius: 12px;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease;
+}
+
+.fw-flow-card:hover {
+  border-color: #242a3a;
+}
+
+/* Header */
+.fw-flow-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.fw-flow-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #f1f5f9;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.fw-flow-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.fw-flow-segments {
+  display: flex;
+  background: #141722;
+  border: 1px solid #232838;
+  border-radius: 6px;
+  padding: 2px;
+}
+
+.fw-flow-seg-btn {
+  padding: 4px 10px;
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: #64748b;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.fw-flow-seg-btn:hover {
+  color: #94a3b8;
+}
+
+.fw-flow-seg-btn.active {
+  background: #232838;
+  color: #f8fafc;
+  font-weight: 600;
+}
+
+.fw-flow-date-pill {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 9px;
+  background: #141722;
+  border: 1px solid #232838;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  color: #94a3b8;
+}
+
+/* Diagram Body */
+.fw-flow-body {
+  display: flex;
+  align-items: center;
+  position: relative;
+  min-height: 180px;
+  margin: 8px 0;
+}
+
+/* Source Box (Left) */
+.fw-flow-source {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  z-index: 2;
+}
+
+.fw-flow-budget-box {
+  background: #161a26;
+  border: 1px solid #283046;
+  border-radius: 8px;
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+}
+
+.fw-flow-budget-label {
+  font-size: 0.65rem;
+  font-weight: 500;
+  color: #64748b;
+}
+
+.fw-flow-budget-amount {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #f8fafc;
+  margin-top: 1px;
+}
+
+.fw-flow-asterisk-box {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: #202638;
+  border: 1px solid #2e3750;
+  color: #818cf8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Center SVG Ribbons */
+.fw-flow-canvas {
+  flex: 1;
+  height: 180px;
+  position: relative;
+  overflow: visible;
+  margin: 0 4px;
+}
+
+.fw-flow-svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.fw-flow-ribbon {
+  transition: opacity 0.2s ease, stroke-width 0.2s ease;
+}
+
+.fw-flow-ribbon:hover {
+  opacity: 1 !important;
+  stroke-width: 11px !important;
+}
+
+/* Target Categories (Right) */
+.fw-flow-targets {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 8px;
+  flex-shrink: 0;
+  z-index: 2;
+}
+
+.fw-flow-target {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.fw-flow-target-bar {
+  width: 3px;
+  height: 24px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.fw-flow-target-info {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+}
+
+.fw-flow-target-name {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: #94a3b8;
+}
+
+.fw-flow-target-amount {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: #f1f5f9;
+}
+
+/* Footer Banner */
+.fw-flow-footer {
+  margin-top: 12px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  background: #141722;
+  border: 1px solid #202636;
+}
+
+.fw-flow-footer-title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #cbd5e1;
+}
+
+.fw-flow-footer-desc {
+  font-size: 0.7rem;
+  color: #64748b;
+  margin-top: 2px;
+}

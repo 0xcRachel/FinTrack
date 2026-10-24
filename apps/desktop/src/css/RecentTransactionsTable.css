@@ -1,0 +1,128 @@
+/* ─── Minimalist Modern Transactions Table ──────────────────── */
+.fw-trans-card {
+  background: #0f121a;
+  border: 1px solid #1a1e2a;
+  border-radius: 12px;
+  padding: 18px 20px;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease;
+}
+
+.fw-trans-card:hover {
+  border-color: #242a3a;
+}
+
+.fw-trans-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.fw-trans-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #f1f5f9;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.fw-trans-filter-btn {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #141722;
+  border: 1px solid #232838;
+  border-radius: 6px;
+  color: #94a3b8;
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.fw-trans-filter-btn:hover {
+  background: #1a1e2c;
+  color: #f1f5f9;
+  border-color: #31384e;
+}
+
+.fw-trans-table-wrap {
+  overflow-x: auto;
+}
+
+.fw-trans-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.fw-trans-th {
+  padding: 8px 12px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: #4b5563;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border-bottom: 1px solid #1a1e2a;
+}
+
+.fw-trans-th.right {
+  text-align: right;
+}
+
+.fw-trans-td {
+  padding: 10px 12px;
+  font-size: 0.775rem;
+  color: #cbd5e1;
+  border-bottom: 1px solid #141722;
+}
+
+.fw-trans-tr {
+  transition: background-color 0.12s ease;
+}
+
+.fw-trans-tr:hover {
+  background-color: #141722;
+}
+
+.fw-trans-td.date {
+  color: #64748b;
+  font-size: 0.72rem;
+  white-space: nowrap;
+}
+
+.fw-trans-td.merchant {
+  font-weight: 600;
+  color: #f1f5f9;
+}
+
+.fw-trans-badge {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  background: #181d2a;
+  border: 1px solid #283046;
+  color: #94a3b8;
+}
+
+.fw-trans-td.amount {
+  font-weight: 700;
+  font-size: 0.8125rem;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.fw-trans-td.amount.expense {
+  color: #f87171;
+}
+
+.fw-trans-td.amount.income {
+  color: #34d399;
+}
+
+.fw-trans-td.amount.transfer {
+  color: #a78bfa;
+}

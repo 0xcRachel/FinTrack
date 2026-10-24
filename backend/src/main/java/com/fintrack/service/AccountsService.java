@@ -14,7 +14,9 @@ import com.fintrack.repository.TransactionsRepository;
 import com.fintrack.mapper.AccountMapper;
 import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -40,8 +42,9 @@ public class AccountsService {
 
   @Transactional(readOnly = true)
   public Page<AccountDto> listAccounts(Users user, Pageable pageable) {
+    Map<Long, BigDecimal> flows = netFlowByAccount(user);
     return accountsRepository.findByUserAndIsArchivedFalse(user, pageable)
-        .map(a -> AccountMapper.toDto(a, computeBalance(a, user)));
+        .map(a -> AccountMapper.toDto(a, balanceOf(a, flows)));
   }
 
   @Transactional(readOnly = true)
@@ -95,9 +98,10 @@ public class AccountsService {
   public List<AccountBalanceDto> accountBalances(Users user) {
     List<Accounts> accounts = accountsRepository.findByUserAndIsArchivedFalseOrderByNameAsc(
         user, org.springframework.data.domain.Pageable.unpaged());
+    Map<Long, BigDecimal> flows = netFlowByAccount(user);
     return accounts.stream()
         .map(a -> new AccountBalanceDto(a.getAccountId(), a.getName(), a.getCurrencyCode(),
-            computeBalance(a, user)))
+            balanceOf(a, flows)))
         .toList();
   }
 
@@ -116,15 +120,31 @@ public class AccountsService {
    */
   @Transactional(readOnly = true)
   public BigDecimal computeBalance(Accounts a, Users user) {
-    BigDecimal income = transactionsRepository.sumToAccount(user, a, TransactionType.INCOME);
-    BigDecimal expense = transactionsRepository.sumFromAccount(user, a, TransactionType.EXPENSE);
-    BigDecimal transferIn = transactionsRepository.sumToAccount(user, a, TransactionType.TRANSFER);
-    BigDecimal transferOut = transactionsRepository.sumFromAccount(user, a, TransactionType.TRANSFER);
-    return a.getOpeningBalance()
-        .add(income)
-        .subtract(expense)
-        .add(transferIn)
-        .subtract(transferOut);
+    return balanceOf(a, netFlowByAccount(user));
+  }
+
+  /**
+   * Loads the net movement of every account of a user in two grouped queries instead of
+   * four queries per account. Returns accountId → (inflow − outflow).
+   */
+  private Map<Long, BigDecimal> netFlowByAccount(Users user) {
+    Map<Long, BigDecimal> flows = new HashMap<>();
+    for (Object[] row : transactionsRepository.inflowByAccount(user)) {
+      flows.merge(((Number) row[0]).longValue(), toDecimal(row[1]), BigDecimal::add);
+    }
+    for (Object[] row : transactionsRepository.outflowByAccount(user)) {
+      flows.merge(((Number) row[0]).longValue(), toDecimal(row[1]).negate(), BigDecimal::add);
+    }
+    return flows;
+  }
+
+  private static BigDecimal balanceOf(Accounts account, Map<Long, BigDecimal> flows) {
+    BigDecimal opening = account.getOpeningBalance() == null ? BigDecimal.ZERO : account.getOpeningBalance();
+    return opening.add(flows.getOrDefault(account.getAccountId(), BigDecimal.ZERO));
+  }
+
+  private static BigDecimal toDecimal(Object value) {
+    return value == null ? BigDecimal.ZERO : new BigDecimal(value.toString());
   }
 
   private void validateCurrency(String code) {

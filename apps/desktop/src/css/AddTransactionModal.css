@@ -1,0 +1,225 @@
+/* ─── Minimalist Modern Add Transaction Modal ─────────────────── */
+.fw-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+.fw-modal-dialog {
+  width: 100%;
+  max-width: 440px;
+  background: #0f121a;
+  border: 1px solid #1a1e2a;
+  border-radius: 12px;
+  padding: 22px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5);
+}
+
+.fw-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.fw-modal-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #f8fafc;
+  margin: 0;
+}
+
+.fw-modal-close-btn {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #141722;
+  border: 1px solid #232838;
+  border-radius: 6px;
+  color: #94a3b8;
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.fw-modal-close-btn:hover {
+  background: #1a1e2c;
+  color: #f1f5f9;
+  border-color: #31384e;
+}
+
+.fw-modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.fw-modal-type-grid {
+  display: flex;
+  background: #141722;
+  border: 1px solid #202636;
+  border-radius: 6px;
+  padding: 2px;
+}
+
+.fw-modal-type-btn {
+  flex: 1;
+  height: 30px;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.fw-modal-type-btn:hover {
+  color: #94a3b8;
+}
+
+.fw-modal-type-btn.active {
+  background: #202636;
+  color: #f8fafc;
+  font-weight: 600;
+}
+
+.fw-modal-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.fw-modal-label {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: #94a3b8;
+}
+
+.fw-modal-input,
+.fw-modal-select {
+  height: 36px;
+  background: #141722;
+  border: 1px solid #232838;
+  border-radius: 6px;
+  padding: 0 10px;
+  color: #f1f5f9;
+  font-size: 0.8125rem;
+  outline: none;
+  transition: border-color 0.12s ease;
+}
+
+.fw-modal-input:focus,
+.fw-modal-select:focus {
+  border-color: #6366f1;
+}
+
+.fw-modal-input::placeholder {
+  color: #3b4256;
+}
+
+.fw-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.fw-modal-cancel-btn {
+  height: 36px;
+  padding: 0 14px;
+  background: #141722;
+  border: 1px solid #283046;
+  border-radius: 6px;
+  color: #cbd5e1;
+  font-size: 0.775rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.fw-modal-cancel-btn:hover {
+  background: #1a1e2c;
+  color: #ffffff;
+}
+
+.fw-modal-submit-btn {
+  height: 36px;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #6366f1;
+  border: 1px solid #4f46e5;
+  border-radius: 6px;
+  color: #ffffff;
+  font-size: 0.775rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.fw-modal-submit-btn:hover {
+  background: #4f46e5;
+}
+
+.fw-modal-submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.fw-modal-error {
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  color: #f87171;
+  margin-bottom: 4px;
+}
+
+.fw-modal-loading-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #141722;
+  border: 1px solid #232838;
+  border-radius: 6px;
+  color: #94a3b8;
+  font-size: 0.75rem;
+}
+
+.fw-modal-btn-create-acc {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 36px;
+  background: #1a1e2c;
+  border: 1px dashed #3b4256;
+  border-radius: 6px;
+  color: #a5b4fc;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.fw-modal-btn-create-acc:hover {
+  background: #232838;
+  border-color: #6366f1;
+  color: #ffffff;
+}
+

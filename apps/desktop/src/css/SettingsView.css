@@ -1,0 +1,75 @@
+.ft-settings { color: #2d342a; width: 100%; max-width: 1260px; margin: 0 auto; }
+.ft-settings button, .ft-settings select { font: inherit; }
+.ft-settings button { cursor: pointer; }
+.ft-settings button:disabled { opacity: .5; cursor: not-allowed; }
+.ft-settings button:focus-visible, .ft-settings a:focus-visible { outline: 3px solid #a3b75e; outline-offset: 4px; }
+.ft-settings-heading { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding-bottom: 32px; }
+.ft-settings-eyebrow { font-size: 10px !important; color: #838b71 !important; letter-spacing: 1.5px; font-weight: 650; margin-bottom: 10px; }
+.ft-settings-heading h1 { font-size: clamp(28px, 2.65vw, 38px); font-weight: 600; letter-spacing: -1.4px; line-height: 1.25; margin: 0 0 10px; }
+.ft-settings-heading p { color: #7d8272; font-size: 12px; line-height: 1.7; }
+.ft-settings-heading-icon { display: grid; place-items: center; width: 56px; height: 56px; background: #e9eddb; color: #5e7145; border-radius: 17px; flex-shrink: 0; }
+.ft-settings-layout { display: grid; grid-template-columns: 255px minmax(0, 1fr); gap: 27px; align-items: start; }
+.ft-settings-aside { display: flex; flex-direction: column; gap: 24px; }
+.ft-settings-profile-summary { padding: 27px 20px; text-align: center; border-radius: 18px; background: #fff; border: 1px solid #e9eadd; }
+.ft-settings-avatar { width: 62px; height: 62px; display: grid; place-items: center; margin: 0 auto 16px; background: #e6eccd; border: 5px solid #f6f7ed; box-shadow: 0 0 0 1px #e9eddb; border-radius: 50%; font-size: 19px; font-weight: 650; color: #657546; }
+.ft-settings-profile-summary h2 { font-size: 15px; font-weight: 650; margin-bottom: 7px; overflow-wrap: anywhere; }
+.ft-settings-profile-summary > p { color: #8a8e7f; font-size: 10px; overflow-wrap: anywhere; line-height: 1.6; }
+.ft-settings-account-label { display: inline-flex; align-items: center; gap: 6px; margin-top: 17px; padding: 6px 9px; color: #67784c; background: #f4f6eb; border-radius: 6px; font-size: 9px; }
+.ft-settings-account-label > span { width: 5px; height: 5px; border-radius: 50%; background: #899b64; }
+.ft-settings-section-nav { display: flex; flex-direction: column; gap: 5px; }
+.ft-settings-section-nav a { display: flex; align-items: center; gap: 11px; padding: 13px 14px; color: #777e6c; text-decoration: none; font-size: 11px; border-radius: 9px; transition: color .18s, background .18s; }
+.ft-settings-section-nav a > span { flex: 1; }
+.ft-settings-section-nav a:hover { color: #455735; background: #edf0e2; }
+.ft-settings-note { position: relative; padding: 26px 22px 40px; background: #2f422f; color: #e8efd9; border-radius: 16px; overflow: hidden; }
+.ft-settings-note::after { content: ''; position: absolute; width: 150px; height: 150px; border: 1px solid #b6cd7830; border-radius: 50%; bottom: -84px; right: -37px; box-shadow: 0 0 0 20px #b6cd7808; pointer-events: none; }
+.ft-settings-note > svg:first-child { color: #d5e99d; margin-bottom: 21px; }
+.ft-settings-note h3 { max-width: 180px; font-size: 20px; font-weight: 500; line-height: 1.45; letter-spacing: -.5px; margin-bottom: 13px; }
+.ft-settings-note p { color: #b9c7ad; font-size: 10px; line-height: 1.8; }
+.ft-settings-note-arrow { position: absolute; right: 20px; bottom: 17px; color: #d5e99d; }
+.ft-settings-main { display: flex; flex-direction: column; gap: 22px; min-width: 0; }
+.ft-settings-card { background: #fff; border: 1px solid #e5e8dc; border-radius: 16px; padding: 25px 28px; scroll-margin-top: 24px; }
+.ft-settings-section-heading { display: flex; align-items: center; gap: 13px; padding-bottom: 25px; }
+.ft-settings-section-icon { display: grid; place-items: center; width: 40px; height: 40px; border: 1px solid #e9ecdf; background: #f8f9f3; border-radius: 11px; color: #73875a; flex-shrink: 0; }
+.ft-settings-section-heading h2 { font-size: 15px; font-weight: 650; margin-bottom: 5px; letter-spacing: -.25px; }
+.ft-settings-section-heading p { font-size: 10px; color: #8c9182; line-height: 1.6; }
+.ft-settings-profile-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; padding-top: 18px; border-top: 1px solid #f0f1e9; }
+.ft-settings-profile-fields span { display: block; margin-bottom: 8px; font-size: 10px; color: #8a907e; }
+.ft-settings-profile-fields p { font-size: 12px; font-weight: 500; overflow-wrap: anywhere; }
+.ft-settings-preference-fields { padding: 0; border: 0; min-width: 0; }
+.ft-settings-language-row { display: flex; align-items: center; gap: 20px; padding-top: 18px; padding-bottom: 23px; border-top: 1px solid #f0f1e9; }
+.ft-settings-field-copy { flex: 1; }
+.ft-settings-field-copy label { font-size: 11px; font-weight: 650; }
+.ft-settings-field-copy p { color: #8b9180; font-size: 10px; line-height: 1.6; margin-top: 6px; }
+.ft-settings-language-row > select { width: 180px; }
+.ft-settings-form-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px 22px; }
+.ft-settings-field { min-width: 0; display: flex; flex-direction: column; gap: 9px; }
+.ft-settings-field label { font-size: 11px; font-weight: 600; }
+.ft-settings-field small { font-size: 9px; color: #8b9180; line-height: 1.6; }
+.ft-settings-field-wide { grid-column: 1 / -1; }
+.ft-settings-field-wide > select { max-width: calc(50% - 11px); }
+.ft-settings-select { width: 100%; min-width: 0; height: 43px; border: 1px solid #e0e4d6; border-radius: 8px; background: #fbfcf8; padding: 0 12px; color: #525d45; font-size: 11px !important; outline: none; }
+.ft-settings-select:focus { border-color: #93a76c; box-shadow: 0 0 0 3px #acbb8326; }
+.ft-settings-save-row { display: flex; align-items: center; justify-content: space-between; gap: 20px; margin-top: 26px; padding-top: 23px; border-top: 1px solid #f0f1e9; }
+.ft-settings-feedback { display: flex; align-items: center; gap: 7px; color: #879075; font-size: 10px; line-height: 1.6; }
+.ft-settings-feedback svg { flex-shrink: 0; }
+.ft-settings-feedback.error { color: #a05b3f; }
+.ft-settings-unsaved-dot { width: 5px; height: 5px; background: #b99d58; border-radius: 50%; flex-shrink: 0; }
+.ft-settings-save-button { display: flex; align-items: center; justify-content: center; gap: 8px; flex-shrink: 0; min-height: 39px; padding: 10px 14px; border: 1px solid #354b2f; border-radius: 8px; background: #354b2f; color: #f5f9eb; font-size: 11px !important; font-weight: 600 !important; transition: background .18s; }
+.ft-settings-save-button:hover:not(:disabled) { background: #4a633e; }
+.ft-settings-save-button:disabled { opacity: 1; background: #eef0e7; color: #9ba38d; border-color: #e7ebdd; }
+.ft-settings-session { display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+.ft-settings-session h2 { font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+.ft-settings-session p { font-size: 10px; line-height: 1.6; color: #8b9181; }
+.ft-settings-logout { display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 10px 13px; flex-shrink: 0; border: 1px solid #e6e2d8; color: #897459; background: #fff; border-radius: 8px; font-size: 10px !important; min-height: 39px; }
+.ft-settings-logout:hover { background: #f8f4ee; border-color: #d6c8b4; }
+.ft-settings-loading { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 50px 20px; color: #7c896b; font-size: 12px; }
+.ft-settings-load-error { display: flex; align-items: center; gap: 10px; border: 1px solid #ebd8c3; border-radius: 9px; background: #fffaf3; color: #9b7855; padding: 17px; font-size: 11px; line-height: 1.7; }
+.ft-settings-load-error > svg { flex-shrink: 0; }
+.ft-settings-load-error p { flex: 1; }
+.ft-settings-load-error button { display: flex; align-items: center; gap: 5px; border: 1px solid #e8d6bf; border-radius: 6px; padding: 7px; white-space: nowrap; background: #fff; }
+.ft-settings-spinner { animation: ft-settings-spin .9s linear infinite; }
+@keyframes ft-settings-spin { to { transform: rotate(360deg); } }
+@media (max-width: 1200px) { .ft-settings-layout { grid-template-columns: 220px minmax(0, 1fr); gap: 20px; } .ft-settings-card { padding: 23px; } .ft-settings-save-row { gap: 12px; } }
+@media (max-width: 1050px) { .ft-settings-layout { grid-template-columns: minmax(0, 1fr); } .ft-settings-aside { display: none; } .ft-settings-heading { padding-bottom: 25px; } }
+@media (max-width: 600px) { .ft-settings-heading-icon { display: none; } .ft-settings-heading h1 { font-size: 28px; } .ft-settings-heading p { font-size: 11px; } .ft-settings-card { padding: 20px; } .ft-settings-section-heading { align-items: flex-start; gap: 10px; } .ft-settings-section-heading h2 { font-size: 14px; } .ft-settings-section-icon { width: 34px; height: 34px; border-radius: 9px; } .ft-settings-profile-fields, .ft-settings-form-grid { grid-template-columns: 1fr; } .ft-settings-field-wide { grid-column: auto; } .ft-settings-field-wide > select { max-width: 100%; } .ft-settings-language-row { align-items: flex-start; flex-direction: column; gap: 12px; } .ft-settings-language-row > select { width: 100%; } .ft-settings-save-row, .ft-settings-session { align-items: flex-start; flex-direction: column; gap: 17px; } .ft-settings-save-button { width: 100%; } .ft-settings-load-error { flex-wrap: wrap; } .ft-settings-load-error p { flex-basis: 80%; } }
+@media (prefers-reduced-motion: reduce) { .ft-settings *, .ft-settings *::before, .ft-settings *::after { animation: none !important; transition: none !important; } }

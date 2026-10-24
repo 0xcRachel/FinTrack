@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS users (
   is_active     TINYINT(1)   NOT NULL DEFAULT 1,
   created_at    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  version      BIGINT       NULL COMMENT 'Optimistic-lock version (JPA @Version)',
+  version      BIGINT       NOT NULL DEFAULT 0 COMMENT 'Optimistic-lock version (JPA @Version)',
   PRIMARY KEY (user_id)
 ) ENGINE=InnoDB;
 
@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS accounts (
   is_archived     TINYINT(1)     NOT NULL DEFAULT 0,
   created_at      DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at      DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  version      BIGINT       NULL COMMENT 'Optimistic-lock version (JPA @Version)',
+  version      BIGINT       NOT NULL DEFAULT 0 COMMENT 'Optimistic-lock version (JPA @Version)',
   PRIMARY KEY (account_id)
 ) ENGINE=InnoDB;
 
@@ -47,7 +47,7 @@ CREATE TABLE IF NOT EXISTS categories (
   is_archived   TINYINT(1)   NOT NULL DEFAULT 0,
   created_at    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  version      BIGINT       NULL COMMENT 'Optimistic-lock version (JPA @Version)',
+  version      BIGINT       NOT NULL DEFAULT 0 COMMENT 'Optimistic-lock version (JPA @Version)',
   PRIMARY KEY (category_id)
 ) ENGINE=InnoDB;
 
@@ -70,7 +70,7 @@ CREATE TABLE IF NOT EXISTS transactions (
   merchant           VARCHAR(200)  NULL,
   created_at         DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at         DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  version      BIGINT       NULL COMMENT 'Optimistic-lock version (JPA @Version)',
+  version      BIGINT       NOT NULL DEFAULT 0 COMMENT 'Optimistic-lock version (JPA @Version)',
   PRIMARY KEY (transaction_id)
 ) ENGINE=InnoDB;
 
@@ -88,7 +88,7 @@ CREATE TABLE IF NOT EXISTS budgets (
   warning_threshold_percent   INT           NOT NULL DEFAULT 80,
   created_at                  DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at                  DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  version      BIGINT       NULL COMMENT 'Optimistic-lock version (JPA @Version)',
+  version      BIGINT       NOT NULL DEFAULT 0 COMMENT 'Optimistic-lock version (JPA @Version)',
   PRIMARY KEY (budget_id)
 ) ENGINE=InnoDB;
 
@@ -105,7 +105,7 @@ CREATE TABLE IF NOT EXISTS savings_goals (
   status             VARCHAR(20)   NOT NULL DEFAULT 'ACTIVE' COMMENT 'ACTIVE|COMPLETED|ARCHIVED',
   created_at         DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at         DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  version      BIGINT       NULL COMMENT 'Optimistic-lock version (JPA @Version)',
+  version      BIGINT       NOT NULL DEFAULT 0 COMMENT 'Optimistic-lock version (JPA @Version)',
   PRIMARY KEY (goal_id)
 ) ENGINE=InnoDB;
 
@@ -118,7 +118,7 @@ CREATE TABLE IF NOT EXISTS goal_contributions (
   contribution_type  VARCHAR(20)   NOT NULL COMMENT 'CONTRIBUTION|WITHDRAWAL',
   description        VARCHAR(500)  NULL,
   created_at         DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  version      BIGINT       NULL COMMENT 'Optimistic-lock version (JPA @Version)',
+  version      BIGINT       NOT NULL DEFAULT 0 COMMENT 'Optimistic-lock version (JPA @Version)',
   PRIMARY KEY (contribution_id)
 ) ENGINE=InnoDB;
 
@@ -129,6 +129,6 @@ CREATE TABLE IF NOT EXISTS application_settings (
   setting_key   VARCHAR(100)  NOT NULL,
   setting_value VARCHAR(1000) NULL COMMENT 'Never passwords / DB credentials / secrets',
   updated_at    DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  version      BIGINT       NULL COMMENT 'Optimistic-lock version (JPA @Version)',
+  version      BIGINT       NOT NULL DEFAULT 0 COMMENT 'Optimistic-lock version (JPA @Version)',
   PRIMARY KEY (setting_id)
 ) ENGINE=InnoDB;

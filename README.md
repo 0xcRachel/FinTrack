@@ -39,6 +39,6 @@ fintrack/
 
 Copy `.env.example` to `.env` and fill in local values. Never commit `.env`.
 
-## Quickstart (filled in as phases land)
+## Running the application
 
-*(Phase 1 in progress — backend/frontend scaffolding.)*
+See [Hướng dẫn chạy FinTrack trên Windows](docs/HUONG_DAN_CHAY.md) for database setup, environment configuration, backend startup, browser/desktop modes, demo login, and troubleshooting.

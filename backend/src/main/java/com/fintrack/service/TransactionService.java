@@ -57,17 +57,7 @@ public class TransactionService {
     validateFilter(f);
     int page = Math.max(0, f.page() == null ? 0 : f.page());
     int size = Math.min(100, Math.max(1, f.size() == null ? 25 : f.size()));
-    String sortProp = f.sort() == null || !ALLOWED_SORT.contains(f.sort())
-        ? "transactionDate" : f.sort();
-    String dir = (f.sort() != null && f.sort().startsWith("-")) ? "desc" : "asc";
-    String prop = f.sort() == null ? "transactionDate" : f.sort().replaceFirst("^-", "");
-    PageRequest pr = PageRequest.of(page, size, Sort.by(Sort.Order.desc(prop)));
-    // simple: default descending on date unless ascending requested
-    if (f.sort() == null || !f.sort().startsWith("-")) {
-      pr = PageRequest.of(page, size, Sort.by(Sort.Order.desc(prop)));
-    } else {
-      pr = PageRequest.of(page, size, Sort.by(Sort.Order.asc(prop)));
-    }
+    PageRequest pr = PageRequest.of(page, size, parseSort(f.sort()));
 
     // Build dynamic query via repository findAll with specification would be cleaner;
     // here we fetch page filtered in service for clarity on small/medium datasets.
@@ -234,6 +224,31 @@ public class TransactionService {
   }
 
   /* ---------- helpers ---------- */
+
+  /**
+   * Accepts the sort styles used by the UI and API clients:
+   *   {@code transactionDate}, {@code transactionDate,desc}, {@code -amount}, {@code amount,asc}.
+   * Unknown properties fall back to {@code transactionDate} instead of failing with a 500.
+   */
+  private static Sort parseSort(String raw) {
+    String property = "transactionDate";
+    boolean ascending = false;
+    if (raw != null && !raw.isBlank()) {
+      String value = raw.trim();
+      String[] parts = (value.startsWith("-") ? value.substring(1) : value).split(",");
+      String candidate = parts[0].trim();
+      if (ALLOWED_SORT.contains(candidate)) {
+        property = candidate;
+      }
+      if (parts.length > 1) {
+        ascending = "asc".equalsIgnoreCase(parts[1].trim());
+      }
+    }
+    Sort.Order primary = ascending ? Sort.Order.asc(property) : Sort.Order.desc(property);
+    return "transactionId".equals(property)
+        ? Sort.by(primary)
+        : Sort.by(primary, Sort.Order.desc("transactionId"));
+  }
 
   private BigDecimal parseAmount(String s) {
     try {

@@ -44,7 +44,12 @@ public class ReportsService {
 
   @Transactional(readOnly = true)
   public List<MonthlyPoint> incomeExpenses(Users user, LocalDate start, LocalDate end) {
-    List<Object[]> rows = transactionsRepository.monthlyIncomeExpense(user, start, end);
+    return incomeExpenses(user, start, end, null);
+  }
+
+  @Transactional(readOnly = true)
+  public List<MonthlyPoint> incomeExpenses(Users user, LocalDate start, LocalDate end, String currency) {
+    List<Object[]> rows = transactionsRepository.monthlyIncomeExpense(user, start, end, normalize(currency));
     return rows.stream()
         .map(r -> new MonthlyPoint(String.valueOf(r[0]) + "-" + String.valueOf(r[1]),
             toDecimal(r[2]), toDecimal(r[3]),
@@ -54,8 +59,14 @@ public class ReportsService {
 
   @Transactional(readOnly = true)
   public List<CategoryDistribution> categoryBreakdown(Users user, LocalDate start, LocalDate end) {
-    List<Object[]> exp = transactionsRepository.expenseByCategory(user, start, end);
-    List<Object[]> inc = transactionsRepository.incomeByCategory(user, start, end);
+    return categoryBreakdown(user, start, end, null);
+  }
+
+  @Transactional(readOnly = true)
+  public List<CategoryDistribution> categoryBreakdown(Users user, LocalDate start, LocalDate end, String currency) {
+    String lens = normalize(currency);
+    List<Object[]> exp = transactionsRepository.expenseByCategory(user, start, end, lens);
+    List<Object[]> inc = transactionsRepository.incomeByCategory(user, start, end, lens);
     List<CategoryDistribution> out = new ArrayList<>();
     for (Object[] r : exp) {
       out.add(new CategoryDistribution(String.valueOf(r[0]), String.valueOf(r[2]), "EXPENSE",
@@ -70,14 +81,21 @@ public class ReportsService {
 
   @Transactional(readOnly = true)
   public List<BudgetPerformance> budgetPerformance(Users user, LocalDate start, LocalDate end) {
+    return budgetPerformance(user, start, end, null);
+  }
+
+  @Transactional(readOnly = true)
+  public List<BudgetPerformance> budgetPerformance(Users user, LocalDate start, LocalDate end, String currency) {
+    String lens = normalize(currency);
     List<com.fintrack.entity.Budgets> budgets = budgetsRepository.findByUserOrderByStartDateDesc(user);
     return budgets.stream()
+        .filter(b -> lens == null || lens.equals(b.getCurrencyCode()))
         .filter(b -> !b.getEndDate().isBefore(start) && !b.getStartDate().isAfter(end))
         .map(b -> {
           LocalDate aStart = b.getStartDate().isAfter(start) ? b.getStartDate() : start;
           LocalDate aEnd = b.getEndDate().isBefore(end) ? b.getEndDate() : end;
           BigDecimal actual = transactionsRepository.sumExpenseByCategoryAndDate(
-              user, b.getCategory(), aStart, aEnd);
+              user, b.getCategory(), aStart, aEnd, b.getCurrencyCode());
           BigDecimal amount = b.getAmount();
           BigDecimal util = null;
           if (amount != null && amount.signum() > 0 && actual != null) {
@@ -91,14 +109,30 @@ public class ReportsService {
 
   @Transactional(readOnly = true)
   public List<AccountBalanceRow> accountBalances(Users user) {
+    return accountBalances(user, null);
+  }
+
+  @Transactional(readOnly = true)
+  public List<AccountBalanceRow> accountBalances(Users user, String currency) {
+    String lens = normalize(currency);
     return accountsRepository.findByUserAndIsArchivedFalseOrderByNameAsc(
         user, org.springframework.data.domain.Pageable.unpaged()).stream()
+        .filter(a -> lens == null || lens.equals(a.getCurrencyCode()))
         .map(a -> new AccountBalanceRow(a.getAccountId(), a.getName(), a.getAccountType().name(),
             a.getCurrencyCode(), dashboardService.accountBalance(a.getAccountId(), user)))
         .collect(Collectors.toList());
   }
 
   /* ---------- helpers ---------- */
+
+  private static String normalize(String currency) {
+    if (currency == null || currency.isBlank()) return null;
+    String code = currency.trim().toUpperCase(java.util.Locale.ROOT);
+    if (!code.matches("^[A-Z]{3}$")) {
+      throw new IllegalArgumentException("Currency must be a 3-letter code");
+    }
+    return code;
+  }
 
   private static BigDecimal toDecimal(Object o) {
     return o == null ? BigDecimal.ZERO : new BigDecimal(o.toString());

@@ -123,7 +123,7 @@ public class BudgetsService {
         .filter(bu -> bu.getUser().getUserId().equals(user.getUserId()))
         .orElseThrow(() -> new IllegalArgumentException("Budget not found"));
     BigDecimal actual = transactionsRepository.sumExpenseByCategoryAndDate(
-        user, b.getCategory(), b.getStartDate(), b.getEndDate());
+        user, b.getCategory(), b.getStartDate(), b.getEndDate(), b.getCurrencyCode());
     BigDecimal amount = b.getAmount();
     BigDecimal utilization = null;
     BigDecimal remaining = null;

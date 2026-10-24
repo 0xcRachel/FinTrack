@@ -1,0 +1,193 @@
+/* ─── Minimalist Modern Sidebar ─────────────────────────────── */
+.fw-sidebar {
+  width: 240px;
+  min-width: 240px;
+  height: 100vh;
+  background-color: #0b0d13;
+  border-right: 1px solid #171a23;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  user-select: none;
+  z-index: 30;
+  box-sizing: border-box;
+}
+
+.fw-sidebar-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0 10px;
+}
+
+.fw-sidebar-content::-webkit-scrollbar {
+  width: 3px;
+}
+.fw-sidebar-content::-webkit-scrollbar-thumb {
+  background: #232734;
+  border-radius: 999px;
+}
+
+/* ─── Logo ─────────────────────────────────────────── */
+.fw-sidebar-logo {
+  padding: 20px 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.fw-sidebar-logo-icon {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #818cf8;
+}
+
+.fw-sidebar-logo-text {
+  font-family: var(--font-display, inherit);
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #f8fafc;
+  display: flex;
+  align-items: baseline;
+}
+
+.fw-sidebar-logo-dot {
+  color: #6366f1;
+  font-size: 1.3rem;
+  line-height: 0;
+  margin-left: 1px;
+}
+
+/* ─── Section Titles ───────────────────────────────── */
+.fw-sidebar-section {
+  margin-top: 12px;
+}
+
+.fw-sidebar-section:first-of-type {
+  margin-top: 2px;
+}
+
+.fw-sidebar-section-title {
+  padding: 0 10px 5px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #4b5563; /* Subtle muted gray */
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* ─── Nav Buttons ──────────────────────────────────── */
+.fw-sidebar-nav-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.fw-sidebar-btn {
+  width: 100%;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 10px;
+  border-radius: 8px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: #94a3b8;
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.12s ease;
+  text-align: left;
+  box-sizing: border-box;
+}
+
+.fw-sidebar-btn:hover {
+  background: #141722;
+  color: #f1f5f9;
+}
+
+.fw-sidebar-btn.active {
+  background: #171b28;
+  color: #ffffff;
+  font-weight: 600;
+  border: 1px solid #282f44;
+}
+
+.fw-sidebar-btn-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.fw-sidebar-btn-label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fw-sidebar-btn-icon {
+  width: 15px;
+  height: 15px;
+  color: #64748b;
+  transition: color 0.12s ease;
+  flex-shrink: 0;
+}
+
+.fw-sidebar-btn:hover .fw-sidebar-btn-icon {
+  color: #cbd5e1;
+}
+
+.fw-sidebar-btn.active .fw-sidebar-btn-icon {
+  color: #818cf8;
+}
+
+/* ─── Indicator ────────────────────────────────────── */
+.fw-sidebar-btn-arrow {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  background: #252b3d;
+  color: #cbd5e1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* ─── Footer / Logout ──────────────────────────────── */
+.fw-sidebar-footer {
+  padding: 10px 10px 14px;
+  border-top: 1px solid #171a23;
+}
+
+.fw-sidebar-logout-btn {
+  width: 100%;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 0 10px;
+  border-radius: 8px;
+  background: transparent;
+  border: none;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.fw-sidebar-logout-btn:hover {
+  background: rgba(239, 68, 68, 0.08);
+  color: #f87171;
+}
+
+.fw-sidebar-logout-btn:hover svg {
+  color: #f87171;
+}

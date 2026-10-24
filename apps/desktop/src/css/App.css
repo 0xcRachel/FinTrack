@@ -1,0 +1,181 @@
+/* ─── Finwise Main App Layout Styles (Minimalist Modern) ─────── */
+.fw-app-root {
+  display: flex;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background-color: #08090d;
+  color: #f8fafc;
+  font-family: var(--font-main, sans-serif);
+}
+
+.fw-app-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  height: 100vh;
+  overflow: hidden;
+  position: relative;
+}
+
+.fw-app-body {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 20px 24px 36px;
+}
+
+.fw-app-body::-webkit-scrollbar {
+  width: 6px;
+}
+.fw-app-body::-webkit-scrollbar-thumb {
+  background: #1e2230;
+  border-radius: 999px;
+}
+
+.fw-app-container {
+  max-width: 1360px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ─── Top Grid (Flow Chart + AI Insights) ──────────── */
+.fw-grid-top {
+  display: grid;
+  grid-template-columns: 1.85fr 1fr;
+  gap: 16px;
+  align-items: stretch;
+}
+
+/* ─── Middle Grid (Trend + Budget Overview) ────────── */
+.fw-grid-mid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  align-items: stretch;
+}
+
+/* ─── Responsive Fallbacks ─────────────────────────── */
+@media (max-width: 1180px) {
+  .fw-grid-top {
+    grid-template-columns: 1fr;
+  }
+  .fw-grid-mid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ─── Dashboard Overview Stat Cards ────────────────── */
+.fw-dash-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+
+@media (max-width: 900px) {
+  .fw-dash-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.fw-dash-stat-card {
+  background-color: #0f121a;
+  border: 1px solid #1a1e2a;
+  border-radius: 12px;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  transition: border-color 0.15s ease;
+}
+
+.fw-dash-stat-card:hover {
+  border-color: #242a3a;
+}
+
+.fw-dash-stat-label {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: #64748b;
+}
+
+.fw-dash-stat-val {
+  font-family: var(--font-display, inherit);
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #f8fafc;
+  margin-top: 4px;
+  letter-spacing: -0.02em;
+}
+
+.fw-dash-stat-val.income {
+  color: #34d399;
+}
+
+.fw-dash-stat-val.expense {
+  color: #f87171;
+}
+
+.fw-dash-stat-val.savings {
+  color: #818cf8;
+}
+
+/* ─── Empty / Placeholder Views ────────────────────── */
+.fw-empty-view {
+  min-height: 440px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  max-width: 440px;
+  margin: 0 auto;
+}
+
+.fw-empty-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  background-color: #141722;
+  border: 1px solid #232838;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #818cf8;
+  font-size: 1.2rem;
+  margin-bottom: 12px;
+}
+
+.fw-empty-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #f8fafc;
+  margin-bottom: 6px;
+}
+
+.fw-empty-desc {
+  font-size: 0.775rem;
+  color: #64748b;
+  line-height: 1.5;
+  margin-bottom: 16px;
+}
+
+.fw-empty-btn {
+  padding: 8px 18px;
+  border-radius: 8px;
+  background: #141722;
+  border: 1px solid #283046;
+  color: #cbd5e1;
+  font-size: 0.775rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.fw-empty-btn:hover {
+  background: #1c2132;
+  border-color: #3b4664;
+  color: #ffffff;
+}
