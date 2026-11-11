@@ -6,15 +6,20 @@ import App from './App.tsx'
 import { queryClient } from './lib/queryClient.ts'
 import { ToastProvider } from './components/ui/ToastProvider.tsx'
 import { ConfirmProvider } from './components/ui/ConfirmProvider.tsx'
+import { AppThemeProvider } from './lib/appTheme.tsx'
+import './css/minimal-theme.css'
+import './css/workspace-shell.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <ToastProvider>
-        <ConfirmProvider>
-          <App />
-        </ConfirmProvider>
-      </ToastProvider>
-    </QueryClientProvider>
+    <AppThemeProvider>
+      <QueryClientProvider client={queryClient}>
+        <ToastProvider>
+          <ConfirmProvider>
+            <App />
+          </ConfirmProvider>
+        </ToastProvider>
+      </QueryClientProvider>
+    </AppThemeProvider>
   </StrictMode>,
 )

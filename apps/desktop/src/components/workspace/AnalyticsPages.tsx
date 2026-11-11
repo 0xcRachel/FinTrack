@@ -2,17 +2,19 @@ import { useEffect, useMemo, useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import {
   ArrowDownLeft, ArrowRight, ArrowUpRight, BarChart3, CalendarDays,
-  CircleAlert, Download, Layers3, LoaderCircle, RefreshCw, ShieldCheck,
+  Download, Layers3, LoaderCircle, ShieldCheck,
   Sparkles, Target, TrendingUp, Wallet,
 } from 'lucide-react';
 import {
   Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from 'recharts';
-import { API_BASE_URL, apiGet, ensureAuthenticated, getToken } from '../../lib/api';
+import { API_BASE_URL, apiGet, ensureAuthenticated, getToken, workspaceHeaders } from '../../lib/api';
 import { categoryLabel } from '../../lib/format';
 import type { Language } from '../../lib/i18n';
 import type { AccountDto, DashboardSummaryDto, PageResponse } from '../../types/api';
 import { useToast } from '../ui/ToastProvider';
+import { useErrorToast } from '../ui/useErrorToast';
+import { useAppTheme } from '../../lib/appTheme';
 import './AnalyticsPages.css';
 
 type Amount = string | number;
@@ -76,12 +78,11 @@ function useAnalyticsData<T>(loader: (signal: AbortSignal) => Promise<T>, key: s
   return { data, loading, failed, retry: () => setRevision(value => value + 1) };
 }
 
-function AnalyticsState({ loading, vi, onRetry }: { loading: boolean; vi: boolean; onRetry: () => void }) {
-  return <div className="wa-state" role={loading ? 'status' : 'alert'}>
-    <span className="wa-state-icon">{loading ? <LoaderCircle className="wa-spin" size={26} /> : <CircleAlert size={26} />}</span>
-    <h2>{loading ? (vi ? 'Đang kết nối những con số…' : 'Connecting the numbers…') : (vi ? 'Chưa thể tải dữ liệu' : 'Your data is temporarily unavailable')}</h2>
-    <p>{loading ? (vi ? 'Báo cáo được tính từ giao dịch bạn đã ghi nhận.' : 'Your reports are calculated from recorded transactions.') : (vi ? 'Kiểm tra kết nối với máy chủ rồi thử lại.' : 'Check your connection to the server, then try again.')}</p>
-    {!loading && <button className="wa-button wa-button-dark" onClick={onRetry}><RefreshCw size={15} />{vi ? 'Thử lại' : 'Try again'}</button>}
+function AnalyticsState({ vi }: { vi: boolean }) {
+  return <div className="wa-state" role="status">
+    <span className="wa-state-icon"><LoaderCircle className="wa-spin" size={26} /></span>
+    <h2>{vi ? 'Đang kết nối những con số…' : 'Connecting the numbers…'}</h2>
+    <p>{vi ? 'Báo cáo được tính từ giao dịch bạn đã ghi nhận.' : 'Your reports are calculated from recorded transactions.'}</p>
   </div>;
 }
 
@@ -113,6 +114,13 @@ function CurrencyLens({ currencies, value, onChange, vi }: {
 export function ReportsPage({ currentLang, currency = 'VND' }: AnalyticsProps) {
   const vi = currentLang === 'vi';
   const notify = useToast();
+  const { theme } = useAppTheme();
+  const dark = theme === 'dark';
+  const chartGrid = dark ? '#27272A' : '#eaece3';
+  const chartTick = dark ? '#A1A1AA' : '#818677';
+  const chartIncome = dark ? '#6ee7b7' : '#535f3c';
+  const chartExpense = dark ? '#d49a7c' : '#c4d798';
+  const tooltipStyle = { border: `1px solid ${dark ? '#3F3F46' : '#e5e7dc'}`, borderRadius: 14, fontSize: 12, background: dark ? '#18181B' : '#ffffff', color: dark ? '#F4F4F5' : '#111110' };
   const [period, setPeriod] = useState(6);
   const [lens, setLens] = useState(currency);
   const [exporting, setExporting] = useState(false);
@@ -125,7 +133,7 @@ export function ReportsPage({ currentLang, currency = 'VND' }: AnalyticsProps) {
       query: `startDate=${dateKey(start)}&endDate=${dateKey(end)}&currency=${lens}`,
     };
   }, [period, lens]);
-  const { data, loading, failed, retry } = useAnalyticsData<ReportData>(async signal => {
+  const { data, loading, failed } = useAnalyticsData<ReportData>(async signal => {
     const [months, categories, allAccounts] = await Promise.all([
       apiGet<MonthlyPoint[]>(`/reports/income-expenses?${range.query}`, signal),
       apiGet<CategoryRow[]>(`/reports/category-breakdown?${range.query}`, signal),
@@ -133,6 +141,7 @@ export function ReportsPage({ currentLang, currency = 'VND' }: AnalyticsProps) {
     ]);
     return { months, categories, currencies: currencyOptions(allAccounts.content) };
   }, range.query);
+  useErrorToast(failed, vi ? 'Chưa thể tải dữ liệu. Kiểm tra kết nối với máy chủ rồi thử lại.' : 'Your data is temporarily unavailable. Check your connection to the server, then try again.');
   const chart = useMemo(() => {
     if (!data) return [];
     const points = new Map(data.months.map(point => [normalizedMonth(point.month), point]));
@@ -165,7 +174,7 @@ export function ReportsPage({ currentLang, currency = 'VND' }: AnalyticsProps) {
       await ensureAuthenticated();
       const token = getToken();
       const response = await fetch(`${API_BASE_URL}/reports/export/summary?${range.query}`, {
-        headers: { Accept: 'text/csv', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+        headers: { Accept: 'text/csv', ...(token ? { Authorization: `Bearer ${token}` } : {}), ...workspaceHeaders() },
       });
       if (!response.ok) throw new Error('Export failed');
       const url = URL.createObjectURL(await response.blob());
@@ -199,7 +208,7 @@ export function ReportsPage({ currentLang, currency = 'VND' }: AnalyticsProps) {
         {range.start.toLocaleDateString(localeFor(currentLang), { day: 'numeric', month: 'short', year: 'numeric' })} — {range.end.toLocaleDateString(localeFor(currentLang), { day: 'numeric', month: 'short', year: 'numeric' })}
       </span>
     </div>
-    {loading || failed || !data ? <AnalyticsState loading={loading} vi={vi} onRetry={retry} /> : <>
+    {loading ? <AnalyticsState vi={vi} /> : failed || !data ? null : <>
       <CurrencyLens currencies={data.currencies} value={lens} onChange={setLens} vi={vi} />
       <div className="wa-stat-grid">
         <article className="wa-stat"><span className="wa-stat-label"><span className="wa-stat-icon"><ArrowDownLeft size={17} /></span>{vi ? 'Tổng thu nhập' : 'Total income'}</span><strong>{fmt(totalIncome)}</strong><span className="wa-stat-foot">{vi ? 'Tiền vào trong kỳ' : 'Money in this period'}</span></article>
@@ -213,12 +222,12 @@ export function ReportsPage({ currentLang, currency = 'VND' }: AnalyticsProps) {
           {hasActivity ? <div className="wa-bar-chart" role="img" aria-label={vi ? 'Biểu đồ so sánh thu nhập và chi tiêu theo tháng' : 'Monthly income and spending comparison'}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chart} barGap={5} margin={{ top: 18, right: 4, left: 0, bottom: 0 }} accessibilityLayer>
-                <CartesianGrid stroke="#eaece3" vertical={false} strokeDasharray="3 5" />
-                <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fill: '#818677', fontSize: 11 }} dy={8} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#818677', fontSize: 10 }} width={55} tickFormatter={value => new Intl.NumberFormat(localeFor(currentLang), { notation: 'compact', maximumFractionDigits: 1 }).format(Number(value))} />
-                <Tooltip cursor={{ fill: '#f2f3ec', radius: 8 }} contentStyle={{ border: '1px solid #e5e7dc', borderRadius: 14, fontSize: 12, boxShadow: '0 8px 24px #20271b0a' }} formatter={(value, name) => [fmt(Number(value)), name === 'income' ? (vi ? 'Thu nhập' : 'Income') : (vi ? 'Chi tiêu' : 'Spending')]} />
-                <Bar dataKey="income" fill="#535f3c" radius={[5, 5, 0, 0]} maxBarSize={34} />
-                <Bar dataKey="expense" fill="#c4d798" radius={[5, 5, 0, 0]} maxBarSize={34} />
+                <CartesianGrid stroke={chartGrid} vertical={false} strokeDasharray="3 5" />
+                <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fill: chartTick, fontSize: 11 }} dy={8} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fill: chartTick, fontSize: 10 }} width={55} tickFormatter={value => new Intl.NumberFormat(localeFor(currentLang), { notation: 'compact', maximumFractionDigits: 1 }).format(Number(value))} />
+                <Tooltip cursor={{ fill: dark ? 'rgba(255,255,255,.05)' : '#f2f3ec', radius: 8 }} contentStyle={tooltipStyle} formatter={(value, name) => [fmt(Number(value)), name === 'income' ? (vi ? 'Thu nhập' : 'Income') : (vi ? 'Chi tiêu' : 'Spending')]} />
+                <Bar dataKey="income" fill={chartIncome} radius={[5, 5, 0, 0]} maxBarSize={34} />
+                <Bar dataKey="expense" fill={chartExpense} radius={[5, 5, 0, 0]} maxBarSize={34} />
               </BarChart>
             </ResponsiveContainer>
           </div> : <EmptyChart vi={vi}>{vi ? 'Chưa có thu nhập hoặc chi tiêu trong khoảng thời gian này. Thử chọn khoảng thời gian khác.' : 'No income or spending in this period. Try another date range.'}</EmptyChart>}
@@ -240,7 +249,7 @@ export function ReportsPage({ currentLang, currency = 'VND' }: AnalyticsProps) {
                 <Pie data={categories.map(row => ({ ...row, value: amount(row.amount) }))} dataKey="value" nameKey="categoryName" innerRadius="70%" outerRadius="91%" paddingAngle={3} stroke="none">
                   {categories.map((row, index) => <Cell key={row.categoryId} fill={PALETTE[index % PALETTE.length]} />)}
                 </Pie>
-                <Tooltip formatter={value => fmt(Number(value))} contentStyle={{ borderRadius: 14, borderColor: '#e5e7dc', fontSize: 12 }} />
+                <Tooltip formatter={value => fmt(Number(value))} contentStyle={tooltipStyle} />
               </PieChart>
             </ResponsiveContainer>
             <div className="wa-donut-center"><span>{vi ? 'Tổng chi tiêu' : 'Total spending'}</span><strong>{new Intl.NumberFormat(localeFor(currentLang), { notation: 'compact', maximumFractionDigits: 1 }).format(categoryTotal)}</strong><small>{displayCurrency}</small></div>
@@ -270,7 +279,7 @@ export function InsightsPage({ currentLang, currency = 'VND', onNavigate }: Anal
       query: `startDate=${dateKey(start)}&endDate=${dateKey(end)}&currency=${lens}`,
     };
   }, [lens]);
-  const { data, loading, failed, retry } = useAnalyticsData<InsightData>(async signal => {
+  const { data, loading, failed } = useAnalyticsData<InsightData>(async signal => {
     const [summary, categories, budgets, goals, allAccounts] = await Promise.all([
       apiGet<DashboardSummaryDto>(`/dashboard/summary?${range.query}`, signal),
       apiGet<CategoryRow[]>(`/reports/category-breakdown?${range.query}`, signal),
@@ -280,6 +289,7 @@ export function InsightsPage({ currentLang, currency = 'VND', onNavigate }: Anal
     ]);
     return { summary, categories, budgets, goals, currencies: currencyOptions(allAccounts.content) };
   }, range.query);
+  useErrorToast(failed, vi ? 'Chưa thể tải dữ liệu. Kiểm tra kết nối với máy chủ rồi thử lại.' : 'Your data is temporarily unavailable. Check your connection to the server, then try again.');
   const income = amount(data?.summary.totalIncome);
   const expense = amount(data?.summary.totalExpense);
   const net = income - expense;
@@ -303,7 +313,7 @@ export function InsightsPage({ currentLang, currency = 'VND', onNavigate }: Anal
       <div><div className="wa-eyebrow"><span />{vi ? 'TỪ DỮ LIỆU ĐẾN HÀNH ĐỘNG' : 'FROM NUMBERS TO NEXT STEPS'}</div><h1>{vi ? 'Tiến xa hơn, từng chút một.' : 'Small steps. A clearer future.'}</h1><p>{vi ? 'Một góc nhìn bình tĩnh về tình hình tài chính của bạn.' : 'A thoughtful look at where you are, and where you can go.'}</p></div>
       <span className="wa-month-pill"><CalendarDays size={16} />{monthLabel}</span>
     </header>
-    {loading || failed || !data ? <AnalyticsState loading={loading} vi={vi} onRetry={retry} /> : <>
+    {loading ? <AnalyticsState vi={vi} /> : failed || !data ? null : <>
       <CurrencyLens currencies={data.currencies} value={lens} onChange={setLens} vi={vi} />
       <article className="wa-insight-hero">
         <div className="wa-insight-hero-copy"><span className="wa-hero-tag"><Sparkles size={13} />{vi ? 'GÓC NHÌN TÀI CHÍNH' : 'YOUR FINANCIAL PERSPECTIVE'}</span>

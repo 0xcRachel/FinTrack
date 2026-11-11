@@ -86,10 +86,13 @@ SOURCE D:/Fintrack/database/01_create_database.sql;
 SOURCE D:/Fintrack/database/02_create_tables.sql;
 SOURCE D:/Fintrack/database/03_constraints_and_indexes.sql;
 SOURCE D:/Fintrack/database/04_seed_development_data.sql;
+SOURCE D:/Fintrack/database/06_create_workspaces.sql;
 EXIT;
 ```
 
 Script đầu tạo database `fintrack` và tài khoản MySQL `fintrack`, mật khẩu phát triển ban đầu là `fintrack_dev`. Nếu tài khoản đã tồn tại, script giữ nguyên mật khẩu cũ. Script 04 thêm dữ liệu demo; không cần chạy lại mỗi lần mở ứng dụng.
+
+Script 06 tạo các bảng không gian cá nhân/gia đình và có thể chạy an toàn bằng `CREATE TABLE IF NOT EXISTS`. Với database đã tạo từ trước, chỉ cần chạy script 06 một lần để bật tính năng không gian chia sẻ.
 
 ## 3. Cấu hình môi trường — chỉ cần làm lần đầu
 

@@ -3,10 +3,12 @@ import type { FormEvent } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Archive, ArrowDownLeft, ArrowUpRight, Loader2, Palette, Pencil, Plus, Tags } from 'lucide-react';
 import { apiGet, apiPatch, apiPost, apiPut } from '../../lib/api';
+import { categoryIcon, CATEGORY_ICON_OPTIONS } from '../../lib/categoryIcons';
 import { money, unwrap } from '../../lib/format';
 import type { Language } from '../../lib/i18n';
 import type { PageResponse } from '../../types/api';
 import { useToast } from '../ui/ToastProvider';
+import { useErrorToast } from '../ui/useErrorToast';
 import { useConfirm } from '../ui/ConfirmProvider';
 import { Dialog } from './Dialog';
 
@@ -38,23 +40,23 @@ export function CategoriesPage({ currentLang, currency = 'VND' }: { currentLang:
   const [formType, setFormType] = useState<CategoryKind>('EXPENSE');
   const [form, setForm] = useState<CategoryForm>(emptyForm());
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState('');
   const [archiving, setArchiving] = useState<number | null>(null);
 
   const expense = useQuery({ queryKey: ['categories', 'EXPENSE', 'manage'], queryFn: ({ signal }) => apiGet<PageResponse<Category>>('/categories?type=EXPENSE&size=200', signal) });
   const income = useQuery({ queryKey: ['categories', 'INCOME', 'manage'], queryFn: ({ signal }) => apiGet<PageResponse<Category>>('/categories?type=INCOME&size=200', signal) });
+  useErrorToast(expense.isError || income.isError, vi ? 'Không tải được danh mục.' : 'Could not load categories.');
 
   const openCreate = (kind: CategoryKind) => {
-    setEditing(null); setFormType(kind); setForm(emptyForm()); setError(''); setDialogOpen(true);
+    setEditing(null); setFormType(kind); setForm(emptyForm()); setDialogOpen(true);
   };
   const openEdit = (category: Category) => {
     setEditing(category); setFormType(category.categoryType);
     setForm({ name: category.name, description: category.description ?? '', colorHex: category.colorHex ?? SWATCHES[0], iconName: category.iconName ?? 'tag' });
-    setError(''); setDialogOpen(true);
+    setDialogOpen(true);
   };
   const save = async (event: FormEvent) => {
-    event.preventDefault(); setError('');
-    if (!form.name.trim()) { setError(vi ? 'Đặt tên cho danh mục này.' : 'Give this category a name.'); return; }
+    event.preventDefault();
+    if (!form.name.trim()) { notify.error(vi ? 'Đặt tên cho danh mục này.' : 'Give this category a name.'); return; }
     setBusy(true);
     try {
       if (editing) {
@@ -66,7 +68,7 @@ export function CategoriesPage({ currentLang, currency = 'VND' }: { currentLang:
       setDialogOpen(false);
       notify.success(editing ? (vi ? 'Đã cập nhật danh mục.' : 'Category updated.') : (vi ? 'Đã tạo danh mục mới.' : 'Category created.'));
     } catch (err) {
-      setError(err instanceof Error ? err.message : (vi ? 'Không thể lưu danh mục.' : 'Could not save the category.'));
+      notify.error(err instanceof Error ? err.message : (vi ? 'Không thể lưu danh mục.' : 'Could not save the category.'));
     } finally { setBusy(false); }
   };
   const archive = async (category: Category) => {
@@ -98,18 +100,21 @@ export function CategoriesPage({ currentLang, currency = 'VND' }: { currentLang:
         <button className="ft-icon-btn" aria-label={vi ? 'Thêm danh mục' : 'Add category'} onClick={() => openCreate(kind)}><Plus size={17} /></button>
       </div>
       <div className="ft-category-panel-body">
-        {query.isError && <div className="ft-error" role="alert">{vi ? 'Không tải được danh mục.' : 'Could not load categories.'}<button onClick={() => void query.refetch()}>{vi ? 'Thử lại' : 'Retry'}</button></div>}
         {query.isLoading && <div className="ft-table-loading">{[0, 1, 2].map(i => <div key={i}><i /><span /><b /></div>)}</div>}
         {!query.isLoading && !query.isError && categories.length === 0 && <div className="ft-category-empty">{vi ? 'Chưa có danh mục. Tạo một danh mục để bắt đầu phân loại.' : 'No categories yet. Create one to start organising.'}</div>}
-        {categories.map(category => <div className="ft-category-row" key={category.categoryId}>
-          <i className="ft-category-swatch" style={{ background: category.colorHex || '#82976A' }} />
-          <div><b>{category.name}</b><small>{category.description || (vi ? 'Chưa có mô tả' : 'No description')}</small></div>
-          {category.totalSpent != null && Number(category.totalSpent) > 0 && <small>{money(category.totalSpent, currentLang, currency)}</small>}
-          <div className="ft-row-actions">
-            <button className="ft-icon-btn" aria-label={vi ? 'Sửa danh mục' : 'Edit category'} onClick={() => openEdit(category)}><Pencil size={14} /></button>
-            <button className="ft-icon-btn danger" aria-label={vi ? 'Lưu trữ danh mục' : 'Archive category'} disabled={archiving === category.categoryId} onClick={() => archive(category)}>{archiving === category.categoryId ? <Loader2 size={14} className="ft-spin" /> : <Archive size={14} />}</button>
-          </div>
-        </div>)}
+        {categories.map(category => {
+          const Icon = categoryIcon(category.iconName);
+          const color = category.colorHex || '#82976A';
+          return <div className="ft-category-row" key={category.categoryId}>
+            <span className="ft-category-icon" style={{ background: `${color}1f`, color }}><Icon size={16} /></span>
+            <div><b>{category.name}</b><small>{category.description || (vi ? 'Chưa có mô tả' : 'No description')}</small></div>
+            {category.totalSpent != null && Number(category.totalSpent) > 0 && <small>{money(category.totalSpent, currentLang, currency)}</small>}
+            <div className="ft-row-actions">
+              <button className="ft-icon-btn" aria-label={vi ? 'Sửa danh mục' : 'Edit category'} onClick={() => openEdit(category)}><Pencil size={14} /></button>
+              <button className="ft-icon-btn danger" aria-label={vi ? 'Lưu trữ danh mục' : 'Archive category'} disabled={archiving === category.categoryId} onClick={() => archive(category)}>{archiving === category.categoryId ? <Loader2 size={14} className="ft-spin" /> : <Archive size={14} />}</button>
+            </div>
+          </div>;
+        })}
       </div>
     </section>;
   };
@@ -136,13 +141,18 @@ export function CategoriesPage({ currentLang, currency = 'VND' }: { currentLang:
     {dialogOpen && <Dialog title={editing ? (vi ? 'Chỉnh sửa danh mục' : 'Edit category') : (vi ? 'Tạo danh mục mới' : 'New category')} onClose={() => { if (!busy) setDialogOpen(false); }} closeLabel={vi ? 'Đóng' : 'Close'}>
       <p className="ft-dialog-subtitle">{editing ? (vi ? 'Thay đổi tên, màu sắc hoặc mô tả. Loại danh mục được giữ nguyên.' : 'Refine the name, colour or description. The category type stays the same.') : (vi ? 'Một danh mục rõ ràng giúp báo cáo của bạn dễ đọc hơn.' : 'A clear category keeps every report easier to read.')}</p>
       <form className="ft-form" onSubmit={save}>
-        {error && <div className="ft-error" role="alert">{error}</div>}
         <div className="ft-form-grid">
           <label>{vi ? 'Tên danh mục' : 'Category name'}<input autoFocus required maxLength={80} value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder={vi ? 'Ví dụ: Cà phê' : 'e.g. Coffee'} /></label>
           <label>{vi ? 'Loại' : 'Type'}<select value={formType} disabled={!!editing} onChange={e => setFormType(e.target.value as CategoryKind)}><option value="EXPENSE">{vi ? 'Khoản chi' : 'Expense'}</option><option value="INCOME">{vi ? 'Thu nhập' : 'Income'}</option></select></label>
         </div>
         <label>{vi ? 'Màu nhận diện' : 'Colour'}<div className="ft-color-field"><input type="color" value={form.colorHex} onChange={e => setForm({ ...form, colorHex: e.target.value })} aria-label={vi ? 'Chọn màu' : 'Pick a colour'} /><span>{form.colorHex.toUpperCase()}</span></div></label>
         <div className="ft-color-swatches" role="group" aria-label={vi ? 'Màu gợi ý' : 'Suggested colours'}>{SWATCHES.map(color => <button type="button" key={color} className={form.colorHex.toLowerCase() === color.toLowerCase() ? 'active' : ''} style={{ background: color }} aria-label={color} onClick={() => setForm({ ...form, colorHex: color })} />)}</div>
+        <div className="ft-form-field">
+          <span className="ft-form-field-label">{vi ? 'Biểu tượng' : 'Icon'}</span>
+          <div className="ft-icon-picker" role="group" aria-label={vi ? 'Chọn biểu tượng' : 'Choose an icon'}>
+            {CATEGORY_ICON_OPTIONS.map(({ name, Icon }) => <button type="button" key={name} className={form.iconName === name ? 'ft-icon-choice active' : 'ft-icon-choice'} aria-label={name} aria-pressed={form.iconName === name} onClick={() => setForm({ ...form, iconName: name })}><Icon size={16} /></button>)}
+          </div>
+        </div>
         <label>{vi ? 'Mô tả (không bắt buộc)' : 'Description (optional)'}<textarea rows={2} maxLength={255} value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} placeholder={vi ? 'Danh mục này dùng cho khoản nào?' : 'What belongs in this category?'} /></label>
         <div className="ft-form-actions"><button type="button" className="ft-btn ft-btn-secondary" disabled={busy} onClick={() => setDialogOpen(false)}>{vi ? 'Hủy' : 'Cancel'}</button><button type="submit" className="ft-btn ft-btn-primary" disabled={busy}>{busy ? <Loader2 size={16} className="ft-spin" /> : <Palette size={16} />}{busy ? (vi ? 'Đang lưu...' : 'Saving...') : (vi ? 'Lưu danh mục' : 'Save category')}</button></div>
       </form>

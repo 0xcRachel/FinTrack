@@ -47,6 +47,13 @@ abstract class ApiTestSupport {
     return rest.exchange(path, method, new HttpEntity<>(body, bearer(token)), String.class);
   }
 
+  protected ResponseEntity<String> exchange(HttpMethod method, String path, Object body, String token,
+                                            Long workspaceId) {
+    HttpHeaders headers = bearer(token);
+    if (workspaceId != null) headers.set("X-Workspace-Id", String.valueOf(workspaceId));
+    return rest.exchange(path, method, new HttpEntity<>(body, headers), String.class);
+  }
+
   protected JsonNode node(String body) {
     try {
       return json.readTree(body);

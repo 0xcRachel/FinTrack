@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS users (
   user_id       BIGINT       NOT NULL AUTO_INCREMENT,
   full_name     VARCHAR(100) NOT NULL,
   email         VARCHAR(255) NOT NULL,
+  avatar_url    MEDIUMTEXT   NULL COMMENT 'Small data URL or image URL',
   password_hash VARCHAR(255) NOT NULL COMMENT 'BCrypt hash, never plaintext',
   is_active     TINYINT(1)   NOT NULL DEFAULT 1,
   created_at    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,

@@ -2,13 +2,14 @@ import { useEffect, useId, useRef, useState } from 'react';
 import type { CSSProperties, FormEvent, ReactNode } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
-  Archive, ArrowDownLeft, ArrowUpRight, CalendarDays, Check, CheckCheck, CircleAlert,
-  CreditCard, History, Landmark, Layers3, LoaderCircle, Minus, Pencil, Plus, RefreshCw,
+  Archive, ArrowDownLeft, ArrowUpRight, CalendarDays, Check, CheckCheck,
+  CreditCard, History, Landmark, Layers3, LoaderCircle, Minus, Pencil, Plus,
   ShieldCheck, Sparkles, Target, Trash2, TrendingUp, Wallet, X,
 } from 'lucide-react';
 import { ApiRequestError, apiDelete, apiGet, apiPatch, apiPost, apiPut } from '../../lib/api';
 import type { Language } from '../../lib/i18n';
 import { useToast } from '../ui/ToastProvider';
+import { useErrorToast } from '../ui/useErrorToast';
 import { useConfirm } from '../ui/ConfirmProvider';
 import './PlanningPages.css';
 
@@ -113,13 +114,6 @@ function LoadingState({ lang }: { lang: Language }) {
   return <div className="wp-loading" role="status"><LoaderCircle className="wp-spin" size={22} /><p>{lang === 'vi' ? 'Đang chuẩn bị không gian tài chính của bạn…' : 'Getting your financial workspace ready…'}</p></div>;
 }
 
-function ErrorState({ error, lang, retry }: { error: unknown; lang: Language; retry: () => void }) {
-  return <div className="wp-state wp-state-error" role="alert"><div className="wp-state-icon"><CircleAlert size={28} /></div>
-    <h2>{lang === 'vi' ? 'Dữ liệu chưa sẵn sàng' : 'Your data is unavailable'}</h2><p>{failure(error, lang)}</p>
-    <button className="wp-button wp-button-secondary" onClick={retry}><RefreshCw size={16} />{lang === 'vi' ? 'Thử lại' : 'Try again'}</button>
-  </div>;
-}
-
 function EmptyState({ icon, title, description, actionText, action }: {
   icon: ReactNode; title: string; description: string; actionText?: string; action?: () => void;
 }) {
@@ -166,6 +160,7 @@ function CurrencyField({ value, setValue, lang }: { value: string; setValue: (va
 
 function BudgetForm({ lang, currency, close, saved, budget }: { lang: Language; currency: string; close: () => void; saved: (currencyCode: string) => void; budget?: Budget | null }) {
   const vi = lang === 'vi';
+  const notify = useToast();
   const editing = !!budget;
   const [form, setForm] = useState({
     name: budget?.name ?? '', categoryId: budget ? String(budget.categoryId) : '', amount: budget ? String(budget.amount) : '',
@@ -174,16 +169,16 @@ function BudgetForm({ lang, currency, close, saved, budget }: { lang: Language; 
     warningThresholdPercent: budget?.warningThresholdPercent != null ? String(budget.warningThresholdPercent) : '80',
   });
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState('');
   const categories = useQuery({ queryKey: ['workspace', 'expense-categories'], queryFn: ({ signal }) => allPages<Category>('/categories?type=EXPENSE', signal) });
+  useErrorToast(categories.isError, failure(categories.error, lang));
   const list = categories.data?.filter(category => !category.isArchived) ?? [];
   const set = (key: keyof typeof form, value: string) => setForm(previous => ({ ...previous, [key]: value }));
   const submit = async (event: FormEvent) => {
     event.preventDefault();
     if (!form.name.trim() || (!editing && !form.categoryId) || !Number.isFinite(Number(form.amount)) || Number(form.amount) <= 0 || form.endDate < form.startDate) {
-      setError(vi ? 'Vui lòng nhập tên, danh mục, số tiền lớn hơn 0 và khoảng ngày hợp lệ.' : 'Enter a name, category, positive amount, and valid date range.'); return;
+      notify.error(vi ? 'Vui lòng nhập tên, danh mục, số tiền lớn hơn 0 và khoảng ngày hợp lệ.' : 'Enter a name, category, positive amount, and valid date range.'); return;
     }
-    setBusy(true); setError('');
+    setBusy(true);
     try {
       if (budget) {
         await apiPut(`/budgets/${budget.budgetId}`, { name: form.name.trim(), amount: form.amount, currencyCode: form.currencyCode, periodType: form.periodType, startDate: form.startDate, endDate: form.endDate, warningThresholdPercent: Number(form.warningThresholdPercent) });
@@ -191,7 +186,7 @@ function BudgetForm({ lang, currency, close, saved, budget }: { lang: Language; 
         await apiPost('/budgets', { ...form, name: form.name.trim(), categoryId: Number(form.categoryId), warningThresholdPercent: Number(form.warningThresholdPercent) });
       }
       saved(form.currencyCode);
-    } catch (err) { setError(failure(err, lang)); } finally { setBusy(false); }
+    } catch (err) { notify.error(failure(err, lang)); } finally { setBusy(false); }
   };
   const periodLabels: Record<BudgetPeriod, string> = { WEEKLY: vi ? 'Hàng tuần' : 'Weekly', MONTHLY: vi ? 'Hàng tháng' : 'Monthly', QUARTERLY: vi ? 'Hàng quý' : 'Quarterly', YEARLY: vi ? 'Hàng năm' : 'Yearly', CUSTOM: vi ? 'Tùy chỉnh' : 'Custom' };
   return <Modal title={editing ? (vi ? 'Điều chỉnh ngân sách' : 'Refine your spending plan') : (vi ? 'Một kế hoạch chi tiêu mới' : 'A fresh spending plan')} subtitle={editing ? (vi ? 'Cập nhật hạn mức hoặc khoảng thời gian. Danh mục được giữ nguyên.' : 'Update the limit or dates. The category stays the same.') : (vi ? 'Đặt giới hạn rõ ràng, dành chỗ cho điều quan trọng.' : 'Set a clear limit. Make room for what matters.')} close={close} busy={busy} lang={lang}>
@@ -202,7 +197,6 @@ function BudgetForm({ lang, currency, close, saved, budget }: { lang: Language; 
         {editing && budget && <option value={budget.categoryId}>{budget.categoryName}</option>}
         {list.map(category => <option key={category.categoryId} value={category.categoryId}>{category.name}</option>)}
       </select></label>
-      {categories.isError && <div className="wp-form-error" role="alert">{failure(categories.error, lang)} <button type="button" onClick={() => void categories.refetch()}>{vi ? 'Thử lại' : 'Retry'}</button></div>}
       {categories.isSuccess && list.length === 0 && <p className="wp-form-note">{vi ? 'Bạn cần một danh mục chi tiêu trước khi tạo ngân sách.' : 'An expense category is needed before you can create a budget.'}</p>}
       <div className="wp-form-grid"><label className="wp-field"><span>{vi ? 'Hạn mức' : 'Spending limit'}</span><input required inputMode="decimal" type="number" min="0.0001" step="0.0001" value={form.amount} onChange={event => set('amount', event.target.value)} placeholder="0" /></label>
         <CurrencyField value={form.currencyCode} setValue={value => set('currencyCode', value)} lang={lang} /></div>
@@ -211,7 +205,6 @@ function BudgetForm({ lang, currency, close, saved, budget }: { lang: Language; 
       <div className="wp-form-grid"><label className="wp-field"><span>{vi ? 'Từ ngày' : 'Start date'}</span><input type="date" required value={form.startDate} onChange={event => set('startDate', event.target.value)} /></label>
         <label className="wp-field"><span>{vi ? 'Đến ngày' : 'End date'}</span><input type="date" min={form.startDate} required value={form.endDate} onChange={event => set('endDate', event.target.value)} /></label></div>
       <p className="wp-form-note">{vi ? 'Chi tiêu trong khoảng ngày đã chọn sẽ tự động được tính vào ngân sách.' : 'Expenses within your selected dates are automatically counted toward this budget.'}</p>
-      {error && <p className="wp-form-error" role="alert">{error}</p>}
       <FormActions close={close} busy={busy} lang={lang} label={editing ? (vi ? 'Lưu thay đổi' : 'Save changes') : (vi ? 'Tạo ngân sách' : 'Create budget')} disabled={!list.length && !editing} />
     </form>
   </Modal>;
@@ -227,6 +220,7 @@ export function BudgetPage({ currentLang: lang, currency = 'VND' }: PlanningPage
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<Budget | null>(null);
   const query = useQuery({ queryKey: ['workspace', 'budgets'], queryFn: ({ signal }) => apiGet<Budget[]>('/budgets', signal) });
+  useErrorToast(query.isError, failure(query.error, lang));
   const budgets = (query.data ?? []).filter(budget => budget.currencyCode === selectedCurrency);
   const current = budgets.filter(budget => budget.startDate <= today() && budget.endDate >= today());
   const visible = filter === 'current' ? current : filter === 'attention' ? budgets.filter(budget => budget.warning || budget.exceeded) : budgets;
@@ -257,7 +251,7 @@ export function BudgetPage({ currentLang: lang, currency = 'VND' }: PlanningPage
       action={() => setShowForm(true)} actionText={vi ? 'Tạo ngân sách' : 'New budget'}>
       <CurrencyPicker value={selectedCurrency} values={(query.data ?? []).map(item => item.currencyCode)} onChange={setCurrency} lang={lang} />
     </PageHeading>
-    {query.isPending ? <LoadingState lang={lang} /> : query.isError ? <ErrorState error={query.error} lang={lang} retry={() => void query.refetch()} /> : <>
+    {query.isPending ? <LoadingState lang={lang} /> : query.isError ? null : <>
       <div className="wp-budget-overview">
         <div className="wp-hero wp-budget-hero"><div className="wp-hero-top"><span className="wp-overline">{vi ? 'CÒN LẠI TRONG NGÂN SÁCH' : 'ROOM LEFT IN YOUR BUDGET'}</span><div className="wp-hero-symbol"><Wallet size={22} /></div></div>
           <div className="wp-hero-amount">{money(remaining, selectedCurrency, lang)}</div>
@@ -299,6 +293,7 @@ export function BudgetPage({ currentLang: lang, currency = 'VND' }: PlanningPage
 
 function GoalForm({ lang, currency, close, saved, goal }: { lang: Language; currency: string; close: () => void; saved: (currencyCode: string) => void; goal?: Goal | null }) {
   const vi = lang === 'vi';
+  const notify = useToast();
   const accounts = useAccounts();
   const editing = !!goal;
   const [form, setForm] = useState({
@@ -306,18 +301,17 @@ function GoalForm({ lang, currency, close, saved, goal }: { lang: Language; curr
     targetDate: goal?.targetDate ?? '', linkedAccountId: goal?.linkedAccountId ? String(goal.linkedAccountId) : '', description: goal?.description ?? '',
   });
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState('');
   const set = (key: keyof typeof form, value: string) => setForm(previous => ({ ...previous, [key]: value }));
   const submit = async (event: FormEvent) => {
     event.preventDefault();
-    if (!form.name.trim() || !Number.isFinite(Number(form.targetAmount)) || Number(form.targetAmount) <= 0) { setError(vi ? 'Nhập tên và số tiền mục tiêu lớn hơn 0.' : 'Enter a name and a positive target amount.'); return; }
-    setBusy(true); setError('');
+    if (!form.name.trim() || !Number.isFinite(Number(form.targetAmount)) || Number(form.targetAmount) <= 0) { notify.error(vi ? 'Nhập tên và số tiền mục tiêu lớn hơn 0.' : 'Enter a name and a positive target amount.'); return; }
+    setBusy(true);
     try {
       const payload = { ...form, name: form.name.trim(), targetDate: form.targetDate || null, linkedAccountId: form.linkedAccountId ? Number(form.linkedAccountId) : null };
       if (goal) await apiPut(`/savings-goals/${goal.goalId}`, payload);
       else await apiPost('/savings-goals', payload);
       saved(form.currencyCode);
-    } catch (err) { setError(failure(err, lang)); } finally { setBusy(false); }
+    } catch (err) { notify.error(failure(err, lang)); } finally { setBusy(false); }
   };
   return <Modal title={editing ? (vi ? 'Điều chỉnh mục tiêu' : 'Refine your goal') : (vi ? 'Điều bạn đang hướng tới' : 'Something to look forward to')} subtitle={editing ? (vi ? 'Cập nhật số tiền, thời hạn hoặc điều mục tiêu này có ý nghĩa với bạn.' : 'Update the amount, timeline, or what this goal means to you.') : (vi ? 'Một mục tiêu rõ ràng. Một bước gần hơn mỗi ngày.' : 'A clear goal. A little closer every day.')} close={close} busy={busy} lang={lang}>
     <form className="wp-form" onSubmit={submit}>
@@ -331,7 +325,7 @@ function GoalForm({ lang, currency, close, saved, goal }: { lang: Language; curr
       </select></label>
       {accounts.isError && <p className="wp-form-note">{vi ? 'Chưa tải được tài khoản. Bạn vẫn có thể tạo mục tiêu độc lập.' : 'Accounts could not load. You can still create an independent goal.'}</p>}
       <label className="wp-field"><span>{vi ? 'Điều này có ý nghĩa gì với bạn? (tùy chọn)' : 'What does this mean to you? (optional)'}</span><textarea maxLength={500} rows={3} value={form.description} onChange={event => set('description', event.target.value)} /></label>
-      {error && <p className="wp-form-error" role="alert">{error}</p>}
+
       <FormActions close={close} busy={busy} lang={lang} label={editing ? (vi ? 'Lưu thay đổi' : 'Save changes') : (vi ? 'Tạo mục tiêu' : 'Create goal')} />
     </form>
   </Modal>;
@@ -339,21 +333,21 @@ function GoalForm({ lang, currency, close, saved, goal }: { lang: Language; curr
 
 function ContributionForm({ goal, lang, close, saved, mode = 'CONTRIBUTION' }: { goal: Goal; lang: Language; close: () => void; saved: () => void; mode?: 'CONTRIBUTION' | 'WITHDRAWAL' }) {
   const vi = lang === 'vi';
+  const notify = useToast();
   const withdrawing = mode === 'WITHDRAWAL';
   const [amount, setAmount] = useState('');
   const [date, setDate] = useState(today());
   const [description, setDescription] = useState('');
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState('');
   const submit = async (event: FormEvent) => {
     event.preventDefault();
-    if (!Number.isFinite(Number(amount)) || Number(amount) <= 0) { setError(vi ? 'Số tiền cần lớn hơn 0.' : 'The amount must be greater than zero.'); return; }
-    if (withdrawing && Number(amount) > n(goal.savedAmount)) { setError(vi ? 'Số tiền rút không thể lớn hơn số đã tiết kiệm.' : 'You cannot withdraw more than the amount saved.'); return; }
-    setBusy(true); setError('');
+    if (!Number.isFinite(Number(amount)) || Number(amount) <= 0) { notify.error(vi ? 'Số tiền cần lớn hơn 0.' : 'The amount must be greater than zero.'); return; }
+    if (withdrawing && Number(amount) > n(goal.savedAmount)) { notify.error(vi ? 'Số tiền rút không thể lớn hơn số đã tiết kiệm.' : 'You cannot withdraw more than the amount saved.'); return; }
+    setBusy(true);
     try {
       await apiPost(`/savings-goals/${goal.goalId}/contributions`, { amount, contributionDate: date, contributionType: mode, description: description.trim() });
       saved();
-    } catch (err) { setError(failure(err, lang)); } finally { setBusy(false); }
+    } catch (err) { notify.error(failure(err, lang)); } finally { setBusy(false); }
   };
   return <Modal title={withdrawing ? (vi ? 'Rút tiền từ mục tiêu' : 'Withdraw from this goal') : (vi ? 'Gần hơn một chút.' : 'One step closer.')} subtitle={goal.name} lang={lang} close={close} busy={busy}>
     <form className="wp-form" onSubmit={submit}>
@@ -362,7 +356,7 @@ function ContributionForm({ goal, lang, close, saved, mode = 'CONTRIBUTION' }: {
       <label className="wp-field"><span>{withdrawing ? (vi ? 'Ngày rút' : 'Withdrawal date') : (vi ? 'Ngày đóng góp' : 'Contribution date')}</span><input required type="date" max={today()} value={date} onChange={event => setDate(event.target.value)} /></label>
       <label className="wp-field"><span>{vi ? 'Ghi chú (tùy chọn)' : 'Note (optional)'}</span><textarea rows={2} maxLength={500} value={description} onChange={event => setDescription(event.target.value)} /></label>
       <p className="wp-form-note"><ShieldCheck size={16} />{withdrawing ? (vi ? 'Khoản rút được ghi nhận vào lịch sử mục tiêu. Số dư tài khoản không thay đổi.' : 'The withdrawal is recorded in the goal history. Account balances do not change.') : (vi ? 'Đây là ghi nhận tiết kiệm cho mục tiêu. Số dư tài khoản của bạn không thay đổi.' : 'This records savings toward your goal. Your account balance will not change.')}</p>
-      {error && <p className="wp-form-error" role="alert">{error}</p>}
+
       <FormActions close={close} busy={busy} lang={lang} label={withdrawing ? (vi ? 'Xác nhận rút' : 'Confirm withdrawal') : (vi ? 'Ghi nhận đóng góp' : 'Record contribution')} />
     </form>
   </Modal>;
@@ -371,8 +365,9 @@ function ContributionForm({ goal, lang, close, saved, mode = 'CONTRIBUTION' }: {
 function GoalHistory({ goal, lang, close }: { goal: Goal; lang: Language; close: () => void }) {
   const vi = lang === 'vi';
   const query = useQuery({ queryKey: ['workspace', 'contributions', goal.goalId], queryFn: ({ signal }) => apiGet<Contribution[]>(`/savings-goals/${goal.goalId}/contributions`, signal) });
+  useErrorToast(query.isError, failure(query.error, lang));
   return <Modal title={goal.name} subtitle={vi ? 'Mỗi bước tiến đều đáng ghi nhận.' : 'Every step forward deserves to be seen.'} lang={lang} close={close}>
-    <div className="wp-history">{query.isPending ? <LoadingState lang={lang} /> : query.isError ? <ErrorState lang={lang} error={query.error} retry={() => void query.refetch()} />
+    <div className="wp-history">{query.isPending ? <LoadingState lang={lang} /> : query.isError ? null
       : !query.data.length ? <EmptyState icon={<History size={26} />} title={vi ? 'Hành trình đang chờ bạn' : 'Your journey starts here'} description={vi ? 'Các khoản đóng góp sẽ được lưu lại tại đây.' : 'Your contributions will appear here as you save.'} />
         : query.data.map(item => <div className="wp-history-row" key={item.contributionId}><span className={`wp-metric-icon ${item.contributionType === 'CONTRIBUTION' ? 'wp-lime' : 'wp-peach'}`}>{item.contributionType === 'CONTRIBUTION' ? <ArrowDownLeft size={18} /> : <ArrowUpRight size={18} />}</span>
           <div><strong>{item.description || (item.contributionType === 'CONTRIBUTION' ? (vi ? 'Đóng góp tiết kiệm' : 'Savings contribution') : (vi ? 'Rút tiết kiệm' : 'Withdrawal'))}</strong><span>{dateLabel(item.contributionDate, lang)}</span></div>
@@ -394,6 +389,7 @@ export function GoalsPage({ currentLang: lang, currency = 'VND' }: PlanningPageP
   const [editing, setEditing] = useState<Goal | null>(null);
   const [withdrawing, setWithdrawing] = useState<Goal | null>(null);
   const query = useQuery({ queryKey: ['workspace', 'goals'], queryFn: ({ signal }) => apiGet<Goal[]>('/savings-goals', signal) });
+  useErrorToast(query.isError, failure(query.error, lang));
   const goals = (query.data ?? []).filter(goal => goal.currencyCode === selectedCurrency);
   const liveGoals = goals.filter(goal => goal.status !== 'ARCHIVED');
   const visible = goals.filter(goal => filter === 'ALL' || goal.status === filter);
@@ -422,7 +418,7 @@ export function GoalsPage({ currentLang: lang, currency = 'VND' }: PlanningPageP
       action={() => setShowForm(true)} actionText={vi ? 'Tạo mục tiêu' : 'New goal'}>
       <CurrencyPicker value={selectedCurrency} values={(query.data ?? []).map(item => item.currencyCode)} onChange={setCurrency} lang={lang} />
     </PageHeading>
-    {query.isPending ? <LoadingState lang={lang} /> : query.isError ? <ErrorState error={query.error} lang={lang} retry={() => void query.refetch()} /> : <>
+    {query.isPending ? <LoadingState lang={lang} /> : query.isError ? null : <>
       <div className="wp-goals-overview">
         <div className="wp-hero wp-goals-hero"><div className="wp-goals-hero-content"><span className="wp-overline">{vi ? 'ĐÃ DÀNH CHO TƯƠNG LAI' : 'SAVED FOR YOUR FUTURE'}</span>
           <div className="wp-hero-amount">{money(totalSaved, selectedCurrency, lang)}</div><p>{vi ? 'Từng khoản nhỏ. Những thay đổi lớn.' : 'Small steps. Meaningful possibilities.'}</p>
@@ -479,6 +475,7 @@ function accountLabel(kind: AccountKind, lang: Language) {
 
 function AccountForm({ lang, currency, close, saved, account }: { lang: Language; currency: string; close: () => void; saved: (currencyCode: string) => void; account?: Account | null }) {
   const vi = lang === 'vi';
+  const notify = useToast();
   const editing = !!account;
   const [form, setForm] = useState({
     name: account?.name ?? '', accountType: account?.accountType ?? 'BANK',
@@ -486,17 +483,16 @@ function AccountForm({ lang, currency, close, saved, account }: { lang: Language
     description: account?.description ?? '',
   });
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState('');
   const set = (key: keyof typeof form, value: string) => setForm(previous => ({ ...previous, [key]: value }));
   const submit = async (event: FormEvent) => {
     event.preventDefault();
-    if (!form.name.trim() || (!editing && (!Number.isFinite(Number(form.openingBalance)) || Number(form.openingBalance) < 0))) { setError(vi ? 'Nhập tên và số dư ban đầu từ 0 trở lên.' : 'Enter a name and a non-negative opening balance.'); return; }
-    setBusy(true); setError('');
+    if (!form.name.trim() || (!editing && (!Number.isFinite(Number(form.openingBalance)) || Number(form.openingBalance) < 0))) { notify.error(vi ? 'Nhập tên và số dư ban đầu từ 0 trở lên.' : 'Enter a name and a non-negative opening balance.'); return; }
+    setBusy(true);
     try {
       if (account) await apiPut(`/accounts/${account.accountId}`, { name: form.name.trim(), description: form.description.trim() });
       else await apiPost('/accounts', { ...form, name: form.name.trim(), openingBalance: form.openingBalance || '0' });
       saved(form.currencyCode);
-    } catch (err) { setError(failure(err, lang)); } finally { setBusy(false); }
+    } catch (err) { notify.error(failure(err, lang)); } finally { setBusy(false); }
   };
   return <Modal title={editing ? (vi ? 'Chỉnh sửa tài khoản' : 'Edit your account') : (vi ? 'Thêm một nơi giữ tiền' : 'A place for your money')} subtitle={editing ? (vi ? 'Cập nhật tên và ghi chú. Loại tiền và số dư ban đầu được giữ nguyên để bảo toàn lịch sử.' : 'Update the name and note. Currency and opening balance stay fixed to protect your history.') : (vi ? 'Theo dõi số dư và dòng tiền trong một không gian.' : 'Track your balance and cash flow in one space.')} close={close} busy={busy} lang={lang}>
     <form className="wp-form" onSubmit={submit}>
@@ -508,7 +504,7 @@ function AccountForm({ lang, currency, close, saved, account }: { lang: Language
         <CurrencyField value={form.currencyCode} setValue={value => set('currencyCode', value)} lang={lang} /></div>
       <label className="wp-field"><span>{vi ? 'Ghi chú (tùy chọn)' : 'Description (optional)'}</span><textarea rows={3} maxLength={500} value={form.description} onChange={event => set('description', event.target.value)} /></label>
       <p className="wp-form-note"><ShieldCheck size={16} />{editing ? (vi ? 'Số dư hiện tại vẫn được tính từ số dư ban đầu và toàn bộ giao dịch đã ghi nhận.' : 'Your current balance still reflects the opening balance and every recorded transaction.') : (vi ? 'Đây là tài khoản theo dõi thủ công. Số dư sẽ thay đổi theo các giao dịch bạn ghi nhận.' : 'This is a manually tracked account. Its balance updates with the transactions you record.')}</p>
-      {error && <p className="wp-form-error" role="alert">{error}</p>}
+
       <FormActions close={close} busy={busy} lang={lang} label={editing ? (vi ? 'Lưu thay đổi' : 'Save changes') : (vi ? 'Tạo tài khoản' : 'Create account')} />
     </form>
   </Modal>;
@@ -523,6 +519,7 @@ export function AccountsPage({ currentLang: lang, currency = 'VND' }: PlanningPa
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<Account | null>(null);
   const query = useAccounts();
+  useErrorToast(query.isError, failure(query.error, lang));
   const accounts = (query.data ?? []).filter(account => !account.isArchived && account.currencyCode === selectedCurrency);
   const total = accounts.reduce((sum, account) => sum + n(account.currentBalance), 0);
   const positiveTotal = accounts.reduce((sum, account) => sum + Math.max(0, n(account.currentBalance)), 0);
@@ -547,7 +544,7 @@ export function AccountsPage({ currentLang: lang, currency = 'VND' }: PlanningPa
       action={() => setShowForm(true)} actionText={vi ? 'Thêm tài khoản' : 'Add account'}>
       <CurrencyPicker value={selectedCurrency} values={(query.data ?? []).map(item => item.currencyCode)} onChange={setCurrency} lang={lang} />
     </PageHeading>
-    {query.isPending ? <LoadingState lang={lang} /> : query.isError ? <ErrorState error={query.error} lang={lang} retry={() => void query.refetch()} /> : <>
+    {query.isPending ? <LoadingState lang={lang} /> : query.isError ? null : <>
       <div className="wp-accounts-overview"><div className="wp-hero wp-account-hero"><div className="wp-hero-top"><span className="wp-overline">{vi ? 'TỔNG SỐ DƯ' : 'YOUR TOTAL BALANCE'}</span><div className="wp-hero-symbol"><Landmark size={22} /></div></div>
         <div className="wp-hero-amount">{money(total, selectedCurrency, lang)}</div><p>{vi ? `Trong ${accounts.length} tài khoản ${selectedCurrency}` : `Across ${accounts.length} ${selectedCurrency} accounts`}</p>
         <div className="wp-account-hero-bottom"><span><ShieldCheck size={15} />{vi ? 'Tính từ giao dịch đã ghi nhận' : 'Calculated from recorded transactions'}</span><span>{selectedCurrency}</span></div></div>

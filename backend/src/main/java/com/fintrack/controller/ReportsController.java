@@ -5,8 +5,8 @@ import com.fintrack.dto.TransactionFilter;
 import com.fintrack.dto.TransactionPage;
 import com.fintrack.service.TransactionService;
 import com.fintrack.security.AppUserDetails;
+import com.fintrack.security.WorkspaceContext;
 import com.fintrack.entity.Users;
-import com.fintrack.repository.UsersRepository;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -26,13 +26,13 @@ public class ReportsController {
 
   private final ReportsService reportsService;
   private final TransactionService transactionService;
-  private final UsersRepository usersRepository;
+  private final WorkspaceContext workspaceContext;
 
   public ReportsController(ReportsService reportsService, TransactionService transactionService,
-                           UsersRepository usersRepository) {
+                           WorkspaceContext workspaceContext) {
     this.reportsService = reportsService;
     this.transactionService = transactionService;
-    this.usersRepository = usersRepository;
+    this.workspaceContext = workspaceContext;
   }
 
   @GetMapping("/income-expenses")
@@ -41,7 +41,7 @@ public class ReportsController {
       @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
       @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
       @RequestParam(required = false) String currency) {
-    return reportsService.incomeExpenses(usersRepository.getReferenceById(details.getUserId()),
+    return reportsService.incomeExpenses(workspaceContext.dataOwner(details),
         startDate, endDate, currency);
   }
 
@@ -51,7 +51,7 @@ public class ReportsController {
       @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
       @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
       @RequestParam(required = false) String currency) {
-    return reportsService.categoryBreakdown(usersRepository.getReferenceById(details.getUserId()),
+    return reportsService.categoryBreakdown(workspaceContext.dataOwner(details),
         startDate, endDate, currency);
   }
 
@@ -61,7 +61,7 @@ public class ReportsController {
       @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
       @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
       @RequestParam(required = false) String currency) {
-    return reportsService.budgetPerformance(usersRepository.getReferenceById(details.getUserId()),
+    return reportsService.budgetPerformance(workspaceContext.dataOwner(details),
         startDate, endDate, currency);
   }
 
@@ -69,14 +69,14 @@ public class ReportsController {
   public List<ReportsService.AccountBalanceRow> accountBalances(
       @AuthenticationPrincipal AppUserDetails details,
       @RequestParam(required = false) String currency) {
-    return reportsService.accountBalances(usersRepository.getReferenceById(details.getUserId()), currency);
+    return reportsService.accountBalances(workspaceContext.dataOwner(details), currency);
   }
 
   @GetMapping("/transactions/export")
   public void exportTransactions(@AuthenticationPrincipal AppUserDetails details,
                                  TransactionFilter filter,
                                  HttpServletResponse response) throws IOException {
-    Users user = usersRepository.getReferenceById(details.getUserId());
+    Users user = workspaceContext.dataOwner(details);
 
     // Export ALL matching rows: the service caps page size at 100, so we page through.
     List<com.fintrack.dto.TransactionDto> rows = new ArrayList<>();
@@ -123,7 +123,7 @@ public class ReportsController {
                             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
                             @RequestParam(required = false) String currency,
                             HttpServletResponse response) throws IOException {
-    Users user = usersRepository.getReferenceById(details.getUserId());
+    Users user = workspaceContext.dataOwner(details);
 
     List<ReportsService.MonthlyPoint> months =
         reportsService.incomeExpenses(user, startDate, endDate, currency);

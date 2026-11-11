@@ -113,11 +113,11 @@ describe('Financial workspace API contracts', () => {
     expect(screen.queryByText('Dollar savings')).not.toBeInTheDocument();
   });
 
-  it('shows connection failure instead of reporting unavailable balances as zero', async () => {
+  it('surfaces connection failure as a toast instead of reporting unavailable balances as zero', async () => {
     get.mockRejectedValue(new ApiRequestError('Offline', 0));
     mount(<AccountsPage currentLang="en" currency="USD" />);
     expect(await screen.findByRole('alert')).toHaveTextContent('We could not connect');
     expect(screen.queryByText('YOUR TOTAL BALANCE')).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Try again' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Try again' })).not.toBeInTheDocument();
   });
 });

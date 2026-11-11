@@ -27,6 +27,9 @@ public class Users {
   @Column(name = "Email", nullable = false, length = 255, unique = true)
   private String email;
 
+  @Column(name = "avatar_url", columnDefinition = "MEDIUMTEXT")
+  private String avatarUrl;
+
   @Column(name = "PasswordHash", nullable = false, length = 255)
   private String passwordHash;
 
@@ -58,6 +61,8 @@ public class Users {
   public void setFullName(String fullName) { this.fullName = fullName; }
   public String getEmail() { return email; }
   public void setEmail(String email) { this.email = email; }
+  public String getAvatarUrl() { return avatarUrl; }
+  public void setAvatarUrl(String avatarUrl) { this.avatarUrl = avatarUrl; }
   public String getPasswordHash() { return passwordHash; }
   public void setPasswordHash(String passwordHash) { this.passwordHash = passwordHash; }
   public Boolean getIsActive() { return isActive; }

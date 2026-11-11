@@ -5,8 +5,8 @@ import com.fintrack.dto.BudgetCreateRequest;
 import com.fintrack.dto.BudgetUpdateRequest;
 import com.fintrack.dto.BudgetSummaryDto;
 import com.fintrack.security.AppUserDetails;
+import com.fintrack.security.WorkspaceContext;
 import com.fintrack.entity.Users;
-import com.fintrack.repository.UsersRepository;
 import com.fintrack.service.BudgetsService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -22,45 +22,49 @@ import java.util.List;
 public class BudgetsController {
 
   private final BudgetsService budgetsService;
-  private final UsersRepository usersRepository;
+  private final WorkspaceContext workspaceContext;
 
-  public BudgetsController(BudgetsService budgetsService, UsersRepository usersRepository) {
+  public BudgetsController(BudgetsService budgetsService, WorkspaceContext workspaceContext) {
     this.budgetsService = budgetsService;
-    this.usersRepository = usersRepository;
+    this.workspaceContext = workspaceContext;
+  }
+
+  private Users currentUser(AppUserDetails details) {
+    return workspaceContext.dataOwner(details);
   }
 
   @GetMapping
   public List<BudgetDto> list(@AuthenticationPrincipal AppUserDetails details) {
-    return budgetsService.listBudgets(usersRepository.getReferenceById(details.getUserId()));
+    return budgetsService.listBudgets(currentUser(details));
   }
 
   @GetMapping("/{id}")
   public BudgetDto get(@AuthenticationPrincipal AppUserDetails details, @PathVariable Long id) {
-    return budgetsService.getBudget(usersRepository.getReferenceById(details.getUserId()), id);
+    return budgetsService.getBudget(currentUser(details), id);
   }
 
   @GetMapping("/{id}/summary")
   public BudgetSummaryDto summary(@AuthenticationPrincipal AppUserDetails details,
                                   @PathVariable Long id) {
-    return budgetsService.budgetSummary(usersRepository.getReferenceById(details.getUserId()), id);
+    return budgetsService.budgetSummary(currentUser(details), id);
   }
 
   @PostMapping
   public ResponseEntity<BudgetDto> create(@AuthenticationPrincipal AppUserDetails details,
                                           @Valid @RequestBody BudgetCreateRequest req) {
-    BudgetDto dto = budgetsService.createBudget(usersRepository.getReferenceById(details.getUserId()), req);
+    BudgetDto dto = budgetsService.createBudget(currentUser(details), req);
     return ResponseEntity.created(URI.create("/api/v1/budgets/" + dto.budgetId())).body(dto);
   }
 
   @PutMapping("/{id}")
   public BudgetDto update(@AuthenticationPrincipal AppUserDetails details, @PathVariable Long id,
                           @Valid @RequestBody BudgetUpdateRequest req) {
-    return budgetsService.updateBudget(usersRepository.getReferenceById(details.getUserId()), id, req);
+    return budgetsService.updateBudget(currentUser(details), id, req);
   }
 
   @DeleteMapping("/{id}")
   public ResponseEntity<Void> delete(@AuthenticationPrincipal AppUserDetails details, @PathVariable Long id) {
-    budgetsService.deleteBudget(usersRepository.getReferenceById(details.getUserId()), id);
+    budgetsService.deleteBudget(currentUser(details), id);
     return ResponseEntity.noContent().build();
   }
 }

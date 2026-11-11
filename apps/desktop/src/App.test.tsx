@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { apiGet } from './lib/api';
 import { ToastProvider } from './components/ui/ToastProvider';
 import { ConfirmProvider } from './components/ui/ConfirmProvider';
+import { AppThemeProvider } from './lib/appTheme';
 import App from './App';
 
 vi.mock('./lib/api', async importOriginal => {
@@ -22,20 +23,26 @@ function mountApp() {
   });
   clients.push(client);
   return render(
-    <QueryClientProvider client={client}>
-      <ToastProvider>
-        <ConfirmProvider>
-          <App />
-        </ConfirmProvider>
-      </ToastProvider>
-    </QueryClientProvider>
+    <AppThemeProvider>
+      <QueryClientProvider client={client}>
+        <ToastProvider>
+          <ConfirmProvider>
+            <App />
+          </ConfirmProvider>
+        </ToastProvider>
+      </QueryClientProvider>
+    </AppThemeProvider>
   );
 }
 
 beforeEach(() => {
   localStorage.clear();
+  vi.spyOn(window, 'scrollTo').mockImplementation(() => {});
   window.location.hash = '#/dashboard';
   get.mockReset().mockImplementation(async path => {
+    if (path === '/workspaces') {
+      return [{ workspaceId: 1, name: 'Personal workspace', type: 'PERSONAL', role: 'OWNER', isDefault: true, memberCount: 1 }];
+    }
     if (path === '/settings') return { displayCurrency: 'VND', locale: 'vi' };
     if (path.startsWith('/dashboard/summary')) {
       return {
@@ -60,6 +67,7 @@ afterEach(() => {
   cleanup();
   clients.splice(0).forEach(client => client.clear());
   vi.clearAllTimers();
+  vi.restoreAllMocks();
 });
 
 describe('FinTrack desktop shell', () => {

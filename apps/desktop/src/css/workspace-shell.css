@@ -1,0 +1,342 @@
+/* ============================================================================
+   Sidebar v2 — shared spaces, animated rail, workspace switcher
+   Loaded after minimal-theme.css so it owns shell geometry.
+   ========================================================================== */
+.ft-app {
+  grid-template-columns: 278px minmax(0, 1fr);
+  transition: grid-template-columns .34s cubic-bezier(.22, .61, .36, 1);
+}
+.ft-app.is-nav-collapsed { grid-template-columns: 88px minmax(0, 1fr); }
+.ft-sidebar { padding: 22px 16px 16px; transition: padding .32s cubic-bezier(.22, .61, .36, 1); }
+.ft-app.is-nav-collapsed .ft-sidebar { padding: 22px 12px 14px; }
+
+.ft-brand-row { min-height: 36px; padding: 0 2px; }
+.ft-brand { gap: 11px; transition: gap .28s ease; }
+.ft-brand-word {
+  display: inline-block; max-width: 160px; overflow: hidden; white-space: nowrap;
+  transition: max-width .3s cubic-bezier(.22, .61, .36, 1), opacity .18s ease;
+}
+.ft-app.is-nav-collapsed .ft-brand { gap: 0; }
+.ft-app.is-nav-collapsed .ft-brand-word { max-width: 0; opacity: 0; }
+.ft-app.is-nav-collapsed .ft-brand-row { justify-content: center; }
+
+/* Workspace switcher card */
+.ft-workspace {
+  display: block;
+  margin: 20px 0 16px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  overflow: visible;
+  transition: margin .3s ease, background .2s ease, border-color .2s ease;
+}
+.ft-workspace-trigger {
+  display: flex; align-items: center; gap: 10px;
+  width: 100%; min-width: 0;
+  padding: 10px;
+  border: 0; border-radius: inherit;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  transition: background .18s ease;
+}
+.ft-workspace-trigger:hover { background: var(--surface-2); }
+.ft-workspace-trigger:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.ft-workspace-icon {
+  display: grid; place-items: center;
+  width: 34px; height: 34px; flex: 0 0 34px;
+  border: 0; border-radius: 10px;
+  background: var(--accent-soft); color: var(--accent);
+  font-family: var(--font-ui); font-size: 13px; font-weight: 650;
+}
+.ft-workspace-icon.is-family { background: #f0e4d6; color: #8a6241; }
+.ft-workspace-copy {
+  flex: 1 1 auto; min-width: 0; max-width: 170px;
+  overflow: hidden; white-space: nowrap;
+  transition: max-width .3s cubic-bezier(.22, .61, .36, 1), opacity .16s ease;
+}
+.ft-workspace-copy b {
+  display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-size: 12px; font-weight: 600; color: var(--ink);
+}
+.ft-workspace-copy small {
+  display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-size: 10px; color: var(--muted);
+}
+.ft-workspace-caret {
+  width: 15px; flex: 0 0 15px; color: var(--muted-2);
+  transition: width .3s ease, opacity .16s ease;
+}
+.ft-workspace .ft-live-dot {
+  flex: 0 0 5px; width: 5px; height: 5px; margin-left: 0;
+  transition: width .3s ease, opacity .16s ease, box-shadow .2s ease;
+}
+.ft-app.is-nav-collapsed .ft-workspace { margin: 16px 0 12px; }
+.ft-app.is-nav-collapsed .ft-workspace-trigger { justify-content: center; gap: 0; padding: 10px 0; }
+.ft-app.is-nav-collapsed .ft-workspace-copy { max-width: 0; opacity: 0; }
+.ft-app.is-nav-collapsed .ft-workspace-caret,
+.ft-app.is-nav-collapsed .ft-workspace .ft-live-dot { width: 0; flex-basis: 0; opacity: 0; margin: 0; box-shadow: none; }
+
+/* Nav rail */
+.ft-nav-item { gap: 11px; transition: background .18s, color .18s, padding .3s cubic-bezier(.22, .61, .36, 1), gap .3s ease; }
+.ft-nav-label {
+  min-width: 0; max-width: 220px; overflow: hidden; white-space: nowrap;
+  transition: max-width .3s cubic-bezier(.22, .61, .36, 1), opacity .16s ease, transform .26s ease;
+}
+.ft-app.is-nav-collapsed .ft-nav-item,
+.ft-app.is-nav-collapsed .ft-nav-item:hover { justify-content: center; gap: 0; padding-left: 0; padding-right: 0; }
+.ft-app.is-nav-collapsed .ft-nav-label { max-width: 0; opacity: 0; transform: translateX(-5px); }
+.ft-nav-caption { transition: height .26s ease, margin .3s ease, background .2s ease; }
+.ft-nav-caption-text { display: inline-block; transition: opacity .16s ease, transform .24s ease; }
+.ft-app.is-nav-collapsed .ft-nav-caption {
+  height: 1px; margin: 14px 10px 10px; overflow: hidden;
+  background: var(--line);
+}
+.ft-app.is-nav-collapsed .ft-nav-caption:first-child { margin-top: 8px; }
+.ft-app.is-nav-collapsed .ft-nav-caption-text { opacity: 0; transform: translateY(-4px); }
+
+/* Account rail */
+.ft-user-copy { min-width: 0; flex: 1; max-height: 40px; transition: max-width .3s ease, max-height .3s ease, opacity .16s ease; }
+.ft-app.is-nav-collapsed .ft-sidebar-bottom { padding-top: 14px; }
+.ft-app.is-nav-collapsed .ft-sidebar-user {
+  flex-direction: column; justify-content: center; gap: 6px;
+  padding: 12px 0 2px;
+}
+.ft-app.is-nav-collapsed .ft-user-copy { max-width: 0; max-height: 0; opacity: 0; overflow: hidden; }
+.ft-app.is-nav-collapsed .ft-sidebar-user .ft-logout { margin-top: 2px; }
+
+/* Topbar collapse control */
+.ft-topbar-left { display: flex; align-items: center; gap: 6px; min-width: 0; flex: 1; }
+.ft-collapse-toggle { width: 34px; height: 34px; flex: 0 0 34px; color: var(--muted); }
+.ft-collapse-toggle:hover { color: var(--ink); background: var(--surface-2); }
+.ft-breadcrumb { min-width: 0; }
+.ft-breadcrumb-space { max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 1024px) { .ft-collapse-toggle { display: none; } }
+
+/* Workspace menu (portaled) */
+.ft-space-backdrop {
+  position: fixed; inset: 0; z-index: 90;
+  border: 0; padding: 0; margin: 0;
+  background: transparent;
+  cursor: default;
+}
+.ft-space-menu {
+  position: fixed; z-index: 91;
+  display: flex; flex-direction: column;
+  max-height: min(72vh, 480px);
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: var(--shadow-lg);
+  animation: ft-space-pop .2s cubic-bezier(.16, 1, .3, 1) both;
+  transform-origin: top left;
+}
+@keyframes ft-space-pop {
+  from { opacity: 0; transform: translateY(-7px) scale(.98); }
+  to { opacity: 1; transform: none; }
+}
+.ft-space-menu-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 10px 7px;
+  color: var(--muted-2); font-size: 9px; font-weight: 650; letter-spacing: .15em;
+}
+.ft-space-menu-head small { font-size: 9px; letter-spacing: .02em; color: var(--muted-2); }
+.ft-space-list { display: flex; flex-direction: column; gap: 2px; overflow-y: auto; }
+.ft-space-option {
+  display: flex; align-items: center; gap: 10px;
+  width: 100%; padding: 9px 10px;
+  border: 0; border-radius: 10px;
+  background: transparent; color: var(--ink);
+  text-align: left;
+  transition: background .16s ease;
+}
+.ft-space-option:hover { background: var(--surface-2); }
+.ft-space-option.is-selected { background: var(--surface-3); }
+.ft-space-avatar {
+  display: grid; place-items: center;
+  width: 30px; height: 30px; flex: 0 0 30px;
+  border-radius: 9px;
+  background: var(--accent-soft); color: var(--accent);
+  font-size: 12px; font-weight: 650;
+}
+.ft-space-avatar.is-family { background: #f0e4d6; color: #8a6241; }
+.ft-space-option-copy { flex: 1; min-width: 0; }
+.ft-space-option-copy b {
+  display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-size: 12.5px; font-weight: 600; color: var(--ink);
+}
+.ft-space-option-copy small {
+  display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-size: 10px; color: var(--muted);
+}
+.ft-space-check { flex: 0 0 auto; color: var(--accent); }
+.ft-space-empty { padding: 14px 10px; color: var(--muted); font-size: 11px; }
+.ft-space-menu-actions {
+  display: flex; flex-direction: column; gap: 2px;
+  margin-top: 6px; padding-top: 6px;
+  border-top: 1px solid var(--line);
+}
+.ft-space-menu-actions button {
+  display: flex; align-items: center; gap: 9px;
+  width: 100%; padding: 9px 10px;
+  border: 0; border-radius: 9px;
+  background: transparent; color: var(--ink-2);
+  font-size: 11.5px; text-align: left;
+  transition: background .16s ease, color .16s ease;
+}
+.ft-space-menu-actions button:hover { background: var(--surface-2); color: var(--ink); }
+.ft-space-menu-actions svg { color: var(--muted); }
+
+/* Create-space dialog */
+.ft-space-form { display: flex; flex-direction: column; gap: 18px; padding: 4px 24px 24px; }
+.ft-space-form-intro {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 13px 14px;
+  border: 1px solid var(--line); border-radius: var(--r-md);
+  background: var(--surface-2);
+}
+.ft-space-form-icon {
+  display: grid; place-items: center;
+  width: 38px; height: 38px; flex: 0 0 38px;
+  border-radius: 11px;
+  background: var(--accent-soft); color: var(--accent);
+}
+.ft-space-form-intro p { font-size: 11px; line-height: 1.65; color: var(--muted); }
+.ft-space-field { display: flex; flex-direction: column; gap: 8px; }
+.ft-space-field > span { font-size: 10px; font-weight: 600; color: var(--muted); }
+.ft-space-field input {
+  width: 100%; height: 42px; padding: 0 12px;
+  border: 1px solid var(--line-strong); border-radius: 9px;
+  background: var(--surface); color: var(--ink);
+  font-size: 12.5px; outline: none;
+  transition: border-color .18s, box-shadow .18s;
+}
+.ft-space-field input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.ft-space-types { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.ft-space-type {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--line); border-radius: 11px;
+  background: var(--surface); color: var(--ink);
+  text-align: left;
+  transition: border-color .18s, background .18s, box-shadow .18s;
+}
+.ft-space-type:hover { border-color: var(--line-strong); }
+.ft-space-type.is-selected { border-color: var(--accent); background: var(--accent-soft); box-shadow: inset 0 0 0 1px var(--accent); }
+.ft-space-type-icon {
+  display: grid; place-items: center;
+  width: 30px; height: 30px; flex: 0 0 30px;
+  border-radius: 8px;
+  background: var(--surface-3); color: var(--ink-2);
+}
+.ft-space-type.is-selected .ft-space-type-icon { background: var(--surface); color: var(--accent); }
+.ft-space-type b { display: block; font-size: 12px; font-weight: 600; color: var(--ink); }
+.ft-space-type small { display: block; margin-top: 3px; font-size: 10px; line-height: 1.5; color: var(--muted); }
+.ft-space-form-note { font-size: 10px; line-height: 1.65; color: var(--muted-2); }
+.ft-space-form-actions {
+  display: flex; justify-content: flex-end; gap: 8px;
+  padding-top: 16px; border-top: 1px solid var(--line);
+}
+
+/* Members dialog */
+.ft-members { padding: 4px 24px 24px; }
+.ft-members-intro { margin-bottom: 16px; font-size: 11px; line-height: 1.65; color: var(--muted); }
+.ft-member-invite { display: flex; gap: 8px; margin-bottom: 16px; }
+.ft-member-invite-field {
+  flex: 1; display: flex; align-items: center; gap: 8px;
+  height: 40px; padding: 0 11px;
+  border: 1px solid var(--line-strong); border-radius: 9px;
+  background: var(--surface);
+  transition: border-color .18s, box-shadow .18s;
+}
+.ft-member-invite-field:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.ft-member-invite-field svg { flex: 0 0 auto; color: var(--muted-2); }
+.ft-member-invite-field input {
+  flex: 1; min-width: 0; height: 100%;
+  border: 0; outline: none; background: transparent;
+  color: var(--ink); font-size: 12px;
+}
+.ft-member-invite-field input::placeholder { color: var(--muted-2); }
+.ft-member-invite .ft-btn { flex: 0 0 auto; }
+.ft-members-readonly {
+  margin-bottom: 16px; padding: 11px 13px;
+  border: 1px solid var(--line); border-radius: 9px;
+  background: var(--surface-2); color: var(--muted);
+  font-size: 10.5px; line-height: 1.6;
+}
+.ft-member-list {
+  display: flex; flex-direction: column;
+  max-height: 330px; overflow-y: auto;
+  border: 1px solid var(--line); border-radius: 12px;
+}
+.ft-member-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 11px 13px;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+}
+.ft-member-row:last-child { border-bottom: 0; }
+.ft-member-copy { flex: 1; min-width: 0; }
+.ft-member-copy b { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; font-weight: 600; color: var(--ink); }
+.ft-member-copy small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 10px; color: var(--muted); }
+.ft-member-role {
+  flex: 0 0 auto; padding: 3px 7px;
+  border-radius: 999px;
+  background: var(--surface-2); color: var(--muted);
+  font-size: 9px; font-weight: 600; white-space: nowrap;
+}
+.ft-member-role.is-owner { background: var(--accent-soft); color: var(--accent); }
+.ft-member-remove { width: 30px; height: 30px; flex: 0 0 30px; color: var(--muted); }
+.ft-member-remove:hover { color: var(--danger); background: color-mix(in srgb, var(--danger) 9%, transparent); }
+.ft-members-loading, .ft-members-empty {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 18px; color: var(--muted); font-size: 11px;
+}
+
+/* Responsive rail + dialogs */
+@media (max-width: 1240px) {
+  .ft-app { grid-template-columns: 250px minmax(0, 1fr); }
+  .ft-app.is-nav-collapsed { grid-template-columns: 84px minmax(0, 1fr); }
+}
+@media (max-width: 1024px) {
+  .ft-app, .ft-app.is-nav-collapsed { grid-template-columns: minmax(0, 1fr); }
+  .ft-app.is-nav-collapsed .ft-sidebar { padding: 24px 16px 16px; }
+  .ft-app.is-nav-collapsed .ft-nav-item { justify-content: flex-start; gap: 11px; padding: 10px 13px; }
+  .ft-app.is-nav-collapsed .ft-nav-item:hover { padding-left: 15px; }
+  .ft-app.is-nav-collapsed .ft-nav-label { max-width: 220px; opacity: 1; transform: none; }
+  .ft-app.is-nav-collapsed .ft-nav-caption { height: auto; margin: 18px 12px 7px; background: transparent; overflow: visible; }
+  .ft-app.is-nav-collapsed .ft-nav-caption-text { opacity: 1; transform: none; }
+  .ft-app.is-nav-collapsed .ft-workspace-trigger { justify-content: flex-start; gap: 10px; padding: 10px; }
+  .ft-app.is-nav-collapsed .ft-workspace-copy { max-width: 170px; opacity: 1; }
+  .ft-app.is-nav-collapsed .ft-workspace-caret { width: 15px; flex-basis: 15px; opacity: 1; }
+  .ft-app.is-nav-collapsed .ft-workspace .ft-live-dot { width: 5px; flex-basis: 5px; opacity: 1; box-shadow: 0 0 0 3px var(--accent-soft); }
+  .ft-app.is-nav-collapsed .ft-brand-word { max-width: 160px; opacity: 1; }
+  .ft-app.is-nav-collapsed .ft-brand { gap: 11px; }
+  .ft-app.is-nav-collapsed .ft-brand-row { justify-content: space-between; }
+  .ft-app.is-nav-collapsed .ft-sidebar-user { flex-direction: row; justify-content: flex-start; gap: 10px; padding: 12px 10px 4px; }
+  .ft-app.is-nav-collapsed .ft-user-copy { max-width: none; max-height: none; opacity: 1; overflow: visible; }
+}
+@media (max-width: 640px) {
+  .ft-space-types { grid-template-columns: 1fr; }
+  .ft-member-invite { flex-direction: column; }
+  .ft-member-invite .ft-btn { width: 100%; }
+}
+html[data-theme="dark"] .ft-workspace-icon.is-family,
+html[data-theme="dark"] .ft-space-avatar.is-family { background: #33261e; color: #d49a7c; }
+html[data-theme="dark"] .wp-add-account-card { background: var(--surface); border-color: var(--line-strong); color: var(--muted); }
+html[data-theme="dark"] .wp-add-account-card:hover { background: var(--surface-2); }
+html[data-theme="dark"] .wp-add-account-card > span { background: var(--surface-3); color: var(--accent); }
+html[data-theme="dark"] .wp-add-account-card > strong { color: var(--ink-2); }
+html[data-theme="dark"] .wp-add-account-card > p { color: var(--muted); }
+html[data-theme="dark"] .ft-space-menu { box-shadow: 0 30px 80px -18px rgba(0, 0, 0, .85); }
+html[data-theme="dark"] .ft-space-option.is-selected { background: var(--surface-3); }
+html[data-theme="dark"] .ft-space-menu-actions button { color: var(--ink-2); }
+html[data-theme="dark"] .ft-space-form-intro { background: var(--surface-2); }
+@media (prefers-reduced-motion: reduce) {
+  .ft-app, .ft-sidebar, .ft-brand, .ft-brand-word, .ft-workspace, .ft-workspace-copy,
+  .ft-workspace-caret, .ft-nav-label, .ft-nav-caption, .ft-nav-caption-text, .ft-user-copy,
+  .ft-space-menu { transition: none !important; animation: none !important; }
+}

@@ -32,6 +32,33 @@ export function clearToken(): void {
   localStorage.removeItem('fintrack_token');
 }
 
+const WORKSPACE_STORAGE_KEY = 'fintrack_workspace';
+
+export function getActiveWorkspaceId(): number | null {
+  try {
+    const raw = localStorage.getItem(WORKSPACE_STORAGE_KEY);
+    if (!raw) return null;
+    const id = Number(raw);
+    return Number.isInteger(id) && id > 0 ? id : null;
+  } catch {
+    return null;
+  }
+}
+
+export function setActiveWorkspaceId(id: number | null): void {
+  try {
+    if (id) localStorage.setItem(WORKSPACE_STORAGE_KEY, String(id));
+    else localStorage.removeItem(WORKSPACE_STORAGE_KEY);
+  } catch {
+    /* storage unavailable */
+  }
+}
+
+export function workspaceHeaders(): Record<string, string> {
+  const id = getActiveWorkspaceId();
+  return id ? { 'X-Workspace-Id': String(id) } : {};
+}
+
 /** Fired once when the backend rejects a request because the JWT expired. */
 export const AUTH_EXPIRED_EVENT = 'fintrack:auth-expired';
 
@@ -46,6 +73,7 @@ function getAuthHeaders(): Record<string, string> {
   return {
     Accept: 'application/json',
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...workspaceHeaders(),
   };
 }
 

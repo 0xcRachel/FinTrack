@@ -5,8 +5,8 @@ import com.fintrack.dto.CategoryCreateRequest;
 import com.fintrack.dto.CategoryUpdateRequest;
 import com.fintrack.enums.CategoryType;
 import com.fintrack.security.AppUserDetails;
+import com.fintrack.security.WorkspaceContext;
 import com.fintrack.entity.Users;
-import com.fintrack.repository.UsersRepository;
 import com.fintrack.service.CategoriesService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
@@ -24,15 +24,15 @@ import java.net.URI;
 public class CategoriesController {
 
   private final CategoriesService categoriesService;
-  private final UsersRepository usersRepository;
+  private final WorkspaceContext workspaceContext;
 
-  public CategoriesController(CategoriesService categoriesService, UsersRepository usersRepository) {
+  public CategoriesController(CategoriesService categoriesService, WorkspaceContext workspaceContext) {
     this.categoriesService = categoriesService;
-    this.usersRepository = usersRepository;
+    this.workspaceContext = workspaceContext;
   }
 
   private Users currentUser(AppUserDetails details) {
-    return usersRepository.getReferenceById(details.getUserId());
+    return workspaceContext.dataOwner(details);
   }
 
   @GetMapping

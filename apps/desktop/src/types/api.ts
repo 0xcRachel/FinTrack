@@ -3,6 +3,26 @@
 export interface HealthStatus  { status: string; service: string; version: string; }
 export interface DatabaseHealth{ status: string; product: string; dbVersion: string; }
 
+/* ─── Workspaces ───────────────────────── */
+export type WorkspaceType = "PERSONAL" | "FAMILY";
+export type WorkspaceRole = "OWNER" | "MEMBER";
+export interface WorkspaceDto {
+  workspaceId: number;
+  name: string;
+  type: WorkspaceType;
+  role: WorkspaceRole;
+  isDefault: boolean;
+  memberCount: number;
+}
+export interface WorkspaceMemberDto {
+  memberId: number;
+  userId: number;
+  fullName: string;
+  email: string;
+  avatarUrl?: string | null;
+  role: WorkspaceRole;
+}
+
 /* ─── Auth ─────────────────────────────── */
 export interface AuthRequest  { email: string; password: string; }
 export interface RegisterRequest { email: string; password: string; fullName: string; }

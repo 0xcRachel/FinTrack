@@ -6,8 +6,7 @@ import com.fintrack.dto.CashFlowDto;
 import com.fintrack.dto.ExpenseBreakdownDto;
 import com.fintrack.dto.DashboardRecentTransactionsDto;
 import com.fintrack.security.AppUserDetails;
-import com.fintrack.entity.Users;
-import com.fintrack.repository.UsersRepository;
+import com.fintrack.security.WorkspaceContext;
 import java.time.LocalDate;
 import java.util.List;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -20,11 +19,11 @@ import org.springframework.web.bind.annotation.*;
 public class DashboardController {
 
   private final DashboardService dashboardService;
-  private final UsersRepository usersRepository;
+  private final WorkspaceContext workspaceContext;
 
-  public DashboardController(DashboardService dashboardService, UsersRepository usersRepository) {
+  public DashboardController(DashboardService dashboardService, WorkspaceContext workspaceContext) {
     this.dashboardService = dashboardService;
-    this.usersRepository = usersRepository;
+    this.workspaceContext = workspaceContext;
   }
 
   @GetMapping("/summary")
@@ -34,7 +33,7 @@ public class DashboardController {
                                      @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
                                      LocalDate endDate,
                                      @RequestParam(required = false) String currency) {
-    return dashboardService.summary(usersRepository.getReferenceById(details.getUserId()),
+    return dashboardService.summary(workspaceContext.dataOwner(details),
         startDate, endDate, currency);
   }
 
@@ -45,7 +44,7 @@ public class DashboardController {
                               @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
                               LocalDate endDate,
                               @RequestParam(required = false) String currency) {
-    return dashboardService.cashFlow(usersRepository.getReferenceById(details.getUserId()),
+    return dashboardService.cashFlow(workspaceContext.dataOwner(details),
         startDate, endDate, currency);
   }
 
@@ -56,7 +55,7 @@ public class DashboardController {
                                               @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
                                               LocalDate endDate,
                                               @RequestParam(required = false) String currency) {
-    return dashboardService.expenseBreakdown(usersRepository.getReferenceById(details.getUserId()),
+    return dashboardService.expenseBreakdown(workspaceContext.dataOwner(details),
         startDate, endDate, currency);
   }
 
@@ -65,7 +64,7 @@ public class DashboardController {
       @AuthenticationPrincipal AppUserDetails details,
       @RequestParam(defaultValue = "10") int limit,
       @RequestParam(required = false) String currency) {
-    return dashboardService.recent(usersRepository.getReferenceById(details.getUserId()), limit, currency);
+    return dashboardService.recent(workspaceContext.dataOwner(details), limit, currency);
   }
 
   @GetMapping("/insights")
@@ -74,7 +73,7 @@ public class DashboardController {
       @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
       @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
       @RequestParam(required = false) String currency) {
-    return dashboardService.insights(usersRepository.getReferenceById(details.getUserId()),
+    return dashboardService.insights(workspaceContext.dataOwner(details),
         startDate, endDate, currency);
   }
 }

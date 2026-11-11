@@ -6,8 +6,8 @@ import com.fintrack.dto.AccountUpdateRequest;
 import com.fintrack.dto.AccountArchiveRequest;
 import com.fintrack.dto.AccountBalanceDto;
 import com.fintrack.security.AppUserDetails;
+import com.fintrack.security.WorkspaceContext;
 import com.fintrack.entity.Users;
-import com.fintrack.repository.UsersRepository;
 import com.fintrack.service.AccountsService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
@@ -25,15 +25,15 @@ import java.net.URI;
 public class AccountsController {
 
   private final AccountsService accountsService;
-  private final UsersRepository usersRepository;
+  private final WorkspaceContext workspaceContext;
 
-  public AccountsController(AccountsService accountsService, UsersRepository usersRepository) {
+  public AccountsController(AccountsService accountsService, WorkspaceContext workspaceContext) {
     this.accountsService = accountsService;
-    this.usersRepository = usersRepository;
+    this.workspaceContext = workspaceContext;
   }
 
   private Users currentUser(AppUserDetails details) {
-    return usersRepository.getReferenceById(details.getUserId());
+    return workspaceContext.dataOwner(details);
   }
 
   @GetMapping

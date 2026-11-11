@@ -106,7 +106,6 @@ h1, h2, h3, h4, p { margin: 0; }
   max-width: 1480px;
   margin: 0 auto;
   padding: 40px 46px 64px;
-  animation: ft-rise .42s cubic-bezier(.22, .61, .36, 1) both;
 }
 .ft-skip {
   position: fixed; left: 16px; top: -60px; z-index: 200;
@@ -386,7 +385,7 @@ h1, h2, h3, h4, p { margin: 0; }
   font-size: 9.5px; font-weight: 650; letter-spacing: .22em;
   text-transform: uppercase;
 }
-.ft-eyebrow > span {
+.ft-eyebrow > span:first-child {
   display: inline-block; width: 26px; height: 1px;
   background: linear-gradient(90deg, var(--gold), transparent);
 }
@@ -1298,7 +1297,6 @@ h1, h2, h3, h4, p { margin: 0; }
 .ft-color-swatches button.active { border-color: var(--ink); box-shadow: 0 0 0 2px var(--surface) inset; }
 
 /* ── Motion ─────────────────────────────────────────────────────────────── */
-@keyframes ft-rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 @keyframes ft-toast-in { from { opacity: 0; transform: translateY(14px) scale(.98); } to { opacity: 1; transform: none; } }
 @keyframes ft-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
 @keyframes ft-shimmer { 0% { opacity: .55; } 50% { opacity: 1; } 100% { opacity: .55; } }

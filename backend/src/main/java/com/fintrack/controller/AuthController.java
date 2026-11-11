@@ -50,7 +50,8 @@ public class AuthController {
     Users user = usersRepository.save(new Users(req.fullName(), req.email(),
         passwordEncoder.encode(req.password())));
     String token = jwtUtil.generateToken(user.getUserId());
-    return new AuthLoginResponse(token, user.getUserId(), user.getFullName(), user.getEmail());
+    return new AuthLoginResponse(token, user.getUserId(), user.getFullName(), user.getEmail(),
+        user.getAvatarUrl());
   }
 
   @PostMapping("/login")
@@ -69,6 +70,7 @@ public class AuthController {
       throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Account is inactive");
     }
     String token = jwtUtil.generateToken(user.getUserId());
-    return new AuthLoginResponse(token, user.getUserId(), user.getFullName(), user.getEmail());
+    return new AuthLoginResponse(token, user.getUserId(), user.getFullName(), user.getEmail(),
+        user.getAvatarUrl());
   }
 }

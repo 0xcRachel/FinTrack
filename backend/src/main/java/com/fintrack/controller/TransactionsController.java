@@ -6,8 +6,8 @@ import com.fintrack.dto.TransactionUpdateRequest;
 import com.fintrack.dto.TransactionFilter;
 import com.fintrack.dto.TransactionPage;
 import com.fintrack.security.AppUserDetails;
+import com.fintrack.security.WorkspaceContext;
 import com.fintrack.entity.Users;
-import com.fintrack.repository.UsersRepository;
 import com.fintrack.service.TransactionService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -22,42 +22,45 @@ import java.net.URI;
 public class TransactionsController {
 
   private final TransactionService transactionService;
-  private final UsersRepository usersRepository;
+  private final WorkspaceContext workspaceContext;
 
   public TransactionsController(TransactionService transactionService,
-                                UsersRepository usersRepository) {
+                                WorkspaceContext workspaceContext) {
     this.transactionService = transactionService;
-    this.usersRepository = usersRepository;
+    this.workspaceContext = workspaceContext;
+  }
+
+  private Users currentUser(AppUserDetails details) {
+    return workspaceContext.dataOwner(details);
   }
 
   @GetMapping
   public TransactionPage list(@AuthenticationPrincipal AppUserDetails details,
                               TransactionFilter filter) {
-    return transactionService.listTransactions(usersRepository.getReferenceById(details.getUserId()), filter);
+    return transactionService.listTransactions(currentUser(details), filter);
   }
 
   @GetMapping("/{id}")
   public TransactionDto get(@AuthenticationPrincipal AppUserDetails details, @PathVariable Long id) {
-    return transactionService.getTransaction(usersRepository.getReferenceById(details.getUserId()), id);
+    return transactionService.getTransaction(currentUser(details), id);
   }
 
   @PostMapping
   public ResponseEntity<TransactionDto> create(@AuthenticationPrincipal AppUserDetails details,
                                                @Valid @RequestBody TransactionCreateRequest req) {
-    TransactionDto dto = transactionService.createTransaction(
-        usersRepository.getReferenceById(details.getUserId()), req);
+    TransactionDto dto = transactionService.createTransaction(currentUser(details), req);
     return ResponseEntity.created(URI.create("/api/v1/transactions/" + dto.transactionId())).body(dto);
   }
 
   @PutMapping("/{id}")
   public TransactionDto update(@AuthenticationPrincipal AppUserDetails details, @PathVariable Long id,
                                @Valid @RequestBody TransactionUpdateRequest req) {
-    return transactionService.updateTransaction(usersRepository.getReferenceById(details.getUserId()), id, req);
+    return transactionService.updateTransaction(currentUser(details), id, req);
   }
 
   @DeleteMapping("/{id}")
   public ResponseEntity<Void> delete(@AuthenticationPrincipal AppUserDetails details, @PathVariable Long id) {
-    transactionService.deleteTransaction(usersRepository.getReferenceById(details.getUserId()), id);
+    transactionService.deleteTransaction(currentUser(details), id);
     return ResponseEntity.noContent().build();
   }
 }
